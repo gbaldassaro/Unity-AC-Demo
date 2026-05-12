@@ -59,6 +59,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "LockOn",
+                    "type": "Button",
+                    "id": "c98672be-542d-417b-b433-2e93a9d35290",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -142,7 +151,7 @@
                 {
                     "name": "Gamepad",
                     "id": "8a1adfac-3c03-41fa-b91c-5b50163aa811",
-                    "path": "2DVector",
+                    "path": "2DVector(mode=2)",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -197,8 +206,8 @@
                 {
                     "name": "Keyboard",
                     "id": "e41b9605-44ee-4849-89c3-1952d2005a69",
-                    "path": "2DVector",
-                    "interactions": "",
+                    "path": "2DVector(mode=2)",
+                    "interactions": "Press(behavior=2)",
                     "processors": "",
                     "groups": "",
                     "action": "Move",
@@ -252,7 +261,7 @@
                 {
                     "name": "Gamepad",
                     "id": "41b6a3a6-676d-4a41-97a1-72c268a99dcf",
-                    "path": "2DVector",
+                    "path": "2DVector(mode=2)",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -367,6 +376,28 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "ShootLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8dcecbba-4c14-4f97-98e3-8de7bc29b2e2",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard and Mouse",
+                    "action": "LockOn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1eb307f6-1855-42b3-b139-b9e1886b40e4",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "LockOn",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
