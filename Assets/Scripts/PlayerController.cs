@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public enum PlayerState
 {
     Idle,
-    Walking,
+    Moving,
     Boosting,
     Flying
 }
@@ -38,23 +38,28 @@ public class PlayerController : MonoBehaviour
     public float jumpHeight;
     [Range(0,10)]
     public float moveSpeed;
+    [Range(0,10)]
+    public float gravity;
     #endregion
     
     #region Private Fields
-    private Rigidbody rb;
+    private CharacterController characterController;
     private PlayerState playerState;
     private CameraState cameraState;
+
+    private Vector3 moveDirection;
     #endregion
 
     #region Input Fields
-    private bool moveHeld;
     private Vector2 moveInput;
+    private Vector2 lookInput;
     private bool lookHeld;
     #endregion
 
+    #region Game Loop
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        characterController = GetComponent<CharacterController>();
         playerState = PlayerState.Idle;
         cameraState = CameraState.FreeAim;
 
@@ -65,59 +70,34 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(moveHeld);
-        if (moveHeld)
-        {
-            Vector2 speed = moveSpeed * moveInput;
-            rb.linearVelocity = new Vector3(speed.x, 0, speed.y);
-        }
+        MovePlayer();
     }
 
     void LateUpdate()
     {
-        PointCamera(cameraFollowPoint);
-        PushCamera(distanceFromPlayer);
+        PointCamera();
+        PushCamera();
     }
+    #endregion
 
     #region Input Methods
     void OnJump()
     {
-        rb.AddForce(0,jumpHeight,0);
+        if (characterController.isGrounded)
+        {
+            Debug.Log("hello");
+        }
     }
 
     void OnMove(InputValue value) 
     {
-        moveHeld = !moveHeld;
         moveInput = value.Get<Vector2>();
     }
 
     void OnLook(InputValue value)
     {
-        Vector2 lookInput = value.Get<Vector2>();
-        Vector2 speed = sensitivity * lookInput;
-
-        switch (cameraState)
-        {
-            case CameraState.LockedOn:
-                if (speed.magnitude > lockOnExitThreshold)
-                {
-                    cameraState = CameraState.FreeAim;
-                }
-                break;
-            
-            case CameraState.FreeAim:
-                Vector3 perp = Vector3.Cross(mainCamera.transform.forward, mainCamera.transform.up).normalized;
-                Vector3 direction = (mainCamera.transform.up * speed.x) + (perp * speed.y);
-                Vector3 temp = mainCamera.transform.position;
-                mainCamera.transform.RotateAround(transform.position, direction, speed.magnitude);
-                // Vector3 positivePosition = new Vector3(mainCamera.transform.position.x, Math.Abs(mainCamera.transform.position.y), mainCamera.transform.position.z);
-                // Debug.Log(Math.Abs(Vector3.Dot(positivePosition.normalized, Vector3.up)));
-                // if (Math.Abs(Vector3.Dot(positivePosition.normalized, Vector3.up)) > Math.Cos(verticalCamAngleLimit*Math.PI/180))
-                // {
-                //     mainCamera.transform.position = temp;
-                // }
-                break;
-        }
+        lookInput = value.Get<Vector2>();
+        MoveCamera();
     }
 
     void OnLockOn()
@@ -134,13 +114,58 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+    #region Player Methods
+    void MovePlayer()
+    {
+        Vector3 forward = mainCamera.transform.forward;
+        forward.y = 0;
+        Vector3 right = mainCamera.transform.right;
+        right.y = 0;
+        moveDirection = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
+
+        characterController.SimpleMove(moveDirection * moveSpeed);
+    }
+    #endregion
+
     #region Camera Methods
-    void PointCamera(Transform cameraFollowPoint)
+    void MoveCamera()
+    {
+        Vector2 speed = sensitivity * lookInput;
+
+        switch (cameraState)
+        {
+            case CameraState.LockedOn:
+                if (speed.sqrMagnitude > lockOnExitThreshold)
+                {
+                    cameraState = CameraState.FreeAim;
+                }
+                break;
+            
+            case CameraState.FreeAim:
+                if (speed.sqrMagnitude > 0.001f){
+                    Vector3 perp = Vector3.Cross(mainCamera.transform.forward, mainCamera.transform.up).normalized;
+                    Vector3 direction = (mainCamera.transform.up * speed.x) + (perp * speed.y);
+                    Vector3 temp = mainCamera.transform.position;
+                    mainCamera.transform.RotateAround(transform.position, direction.normalized, speed.magnitude);
+                    /*
+                    Vector3 positivePosition = new Vector3(mainCamera.transform.position.x, Math.Abs(mainCamera.transform.position.y), mainCamera.transform.position.z);
+                    Debug.Log(Math.Abs(Vector3.Dot(positivePosition.normalized, Vector3.up)));
+                    if (Math.Abs(Vector3.Dot(positivePosition.normalized, Vector3.up)) > Math.Cos(verticalCamAngleLimit*Math.PI/180))
+                    {
+                        mainCamera.transform.position = temp;
+                    }
+                    */
+                }
+                break;
+        }
+    }
+
+    void PointCamera()
     {
         mainCamera.transform.forward = cameraFollowPoint.position - mainCamera.transform.position;
     }
 
-    void PushCamera(float distanceFromPlayer)
+    void PushCamera()
     {
         Vector3 offset = mainCamera.transform.position - transform.position;
         mainCamera.transform.position += mainCamera.transform.forward * (offset.magnitude - distanceFromPlayer);
