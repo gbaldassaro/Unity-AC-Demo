@@ -75,6 +75,7 @@ public class PlayerController : MonoBehaviour
 
     void LateUpdate()
     {
+        MoveCamera();
         PointCamera();
         PushCamera();
     }
@@ -97,7 +98,6 @@ public class PlayerController : MonoBehaviour
     void OnLook(InputValue value)
     {
         lookInput = value.Get<Vector2>();
-        MoveCamera();
     }
 
     void OnLockOn()
@@ -143,18 +143,26 @@ public class PlayerController : MonoBehaviour
             
             case CameraState.FreeAim:
                 if (speed.sqrMagnitude > 0.001f){
-                    Vector3 perp = Vector3.Cross(mainCamera.transform.forward, mainCamera.transform.up).normalized;
-                    Vector3 direction = (mainCamera.transform.up * speed.x) + (perp * speed.y);
-                    Vector3 temp = mainCamera.transform.position;
-                    mainCamera.transform.RotateAround(transform.position, direction.normalized, speed.magnitude);
-                    /*
-                    Vector3 positivePosition = new Vector3(mainCamera.transform.position.x, Math.Abs(mainCamera.transform.position.y), mainCamera.transform.position.z);
-                    Debug.Log(Math.Abs(Vector3.Dot(positivePosition.normalized, Vector3.up)));
-                    if (Math.Abs(Vector3.Dot(positivePosition.normalized, Vector3.up)) > Math.Cos(verticalCamAngleLimit*Math.PI/180))
+
+                    Vector3 axisVertical = -mainCamera.transform.right;
+                    Vector3 axisHorizontal = mainCamera.transform.up;
+
+                    mainCamera.transform.RotateAround(transform.position, axisHorizontal.normalized, speed.x);
+
+                    GameObject temp = new GameObject();
+                    temp.transform.position = mainCamera.transform.position;
+                    temp.transform.rotation = mainCamera.transform.rotation;
+
+                    temp.transform.RotateAround(transform.position, axisVertical.normalized, speed.y);
+                    Vector3 offset = temp.transform.position - transform.position;
+                    Vector3 positivePosition = new Vector3(offset.x, Math.Abs(offset.y), offset.z);
+                    if (Math.Abs(Vector3.Angle(positivePosition.normalized, Vector3.up)) > verticalCamAngleLimit)
                     {
-                        mainCamera.transform.position = temp;
+                        mainCamera.transform.RotateAround(transform.position, axisVertical.normalized, speed.y);
                     }
-                    */
+                    
+                    Destroy(temp);
+
                 }
                 break;
         }
