@@ -13,7 +13,7 @@ public class CameraController : MonoBehaviour
 
     public GameObject player;
     public Transform cameraFollowPoint;
-    [Range(0,20)]
+    [Range(2,20)]
     public float distanceFromPlayer;
     [Range(0,90)]
     public float verticalCamAngleLimit;

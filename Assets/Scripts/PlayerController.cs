@@ -22,7 +22,15 @@ public class PlayerController : MonoBehaviour
     [Range(0,100)]
     public float jumpHeight;
     [Range(0,10)]
-    public float moveSpeed;
+    public float walkMaxSpeed;
+    [Range(0,10)]
+    public float walkAcceleration;
+    [Range(0,10)]
+    public float boostMaxSpeed;
+    [Range(0,10)]
+    public float boostAcceleration;
+    [Range(0,10)]
+    public float friction;
     [Range(0,10)]
     public float gravity;
     #endregion
@@ -32,6 +40,7 @@ public class PlayerController : MonoBehaviour
     private PlayerState playerState;
 
     private Vector3 moveDirection;
+    private Vector3 accelerationDirection;
     #endregion
 
     #region Input Fields
@@ -52,6 +61,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         MovePlayer();
+        Debug.Log(playerState);
     }
     #endregion
 
@@ -67,19 +77,72 @@ public class PlayerController : MonoBehaviour
     void OnMove(InputValue value) 
     {
         moveInput = value.Get<Vector2>();
+        switch (playerState)
+        {
+            case PlayerState.Idle:
+                playerState = PlayerState.Moving;
+                break;
+        }
+    }
+
+    void OnBoost()
+    {
+        switch (playerState)
+        {
+            case PlayerState.Moving:
+                playerState = PlayerState.Boosting;
+                break;
+            case PlayerState.Boosting:
+                playerState = PlayerState.Moving;
+                break;
+        }
     }
     #endregion
 
     #region Player Methods
     void MovePlayer()
     {
-        Vector3 forward = mainCamera.transform.forward;
-        forward.y = 0;
-        Vector3 right = mainCamera.transform.right;
-        right.y = 0;
-        moveDirection = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
+        if (playerState != PlayerState.Idle)
+        {
+            Vector3 forward = mainCamera.transform.forward;
+            forward.y = 0;
+            Vector3 right = mainCamera.transform.right;
+            right.y = 0;
+            accelerationDirection = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
 
-        characterController.SimpleMove(moveDirection * moveSpeed);
+            float maxSpeed = 0; 
+
+            switch (playerState)
+            {
+                case PlayerState.Moving:
+                    maxSpeed = walkMaxSpeed;
+                    accelerationDirection *= walkAcceleration;
+                    break;
+                case PlayerState.Boosting:
+                    maxSpeed = boostMaxSpeed;
+                    accelerationDirection *= boostAcceleration;
+                    break;
+            }
+
+            if (moveInput.sqrMagnitude < 0.001f)
+            {
+                accelerationDirection = -moveDirection * friction;
+            }
+
+            moveDirection += accelerationDirection;
+
+            if (moveDirection.magnitude > maxSpeed)
+            {
+                moveDirection = moveDirection.normalized * maxSpeed;
+            }
+
+            if (moveDirection.magnitude < 0.01f)
+            {
+                playerState = PlayerState.Idle;
+            }
+
+            characterController.Move(moveDirection * Time.deltaTime);
+        }
     }
     #endregion
 }
