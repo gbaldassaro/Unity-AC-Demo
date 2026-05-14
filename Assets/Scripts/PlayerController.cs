@@ -19,19 +19,23 @@ public class PlayerController : MonoBehaviour
     public Camera mainCamera;
 
     [Header("Player")]
-    [Range(0,100)]
-    public float jumpHeight;
+    [Range(0,50)]
+    public float jumpVelocity;
+    [Range(0,20)]
+    public float hoverMaxSpeed;
+    [Range(0,10)]
+    public float hoverAcceleration;
     [Range(0,10)]
     public float walkMaxSpeed;
-    [Range(0,10)]
+    [Range(0,1)]
     public float walkAcceleration;
-    [Range(0,10)]
+    [Range(0,20)]
     public float boostMaxSpeed;
-    [Range(0,10)]
+    [Range(0,1)]
     public float boostAcceleration;
-    [Range(0,10)]
+    [Range(0,1)]
     public float friction;
-    [Range(0,10)]
+    [Range(-10,0)]
     public float gravity;
     #endregion
     
@@ -39,8 +43,11 @@ public class PlayerController : MonoBehaviour
     private CharacterController characterController;
     private PlayerState playerState;
 
-    private Vector3 moveDirection;
-    private Vector3 accelerationDirection;
+    private Vector3 horizontalVelocityVector;
+    private float verticalVelocity;
+    private Vector3 accelerationVector;
+
+    private bool jumpHeld;
     #endregion
 
     #region Input Fields
@@ -61,22 +68,22 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         MovePlayer();
-        Debug.Log(playerState);
+        Debug.Log("JumpHeld: " + jumpHeld);
     }
     #endregion
 
     #region Input Methods
-    void OnJump()
+    public void OnJump(InputAction.CallbackContext context)
     {
-        if (characterController.isGrounded)
+        if (context.performed)
         {
-            Debug.Log("hello");
+            jumpHeld = !jumpHeld;
         }
     }
 
-    void OnMove(InputValue value) 
+    public void OnMove(InputAction.CallbackContext context) 
     {
-        moveInput = value.Get<Vector2>();
+        moveInput = context.ReadValue<Vector2>();
         switch (playerState)
         {
             case PlayerState.Idle:
@@ -85,7 +92,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnBoost()
+    public void OnBoost(InputAction.CallbackContext context)
     {
         switch (playerState)
         {
@@ -108,7 +115,7 @@ public class PlayerController : MonoBehaviour
             forward.y = 0;
             Vector3 right = mainCamera.transform.right;
             right.y = 0;
-            accelerationDirection = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
+            accelerationVector = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
 
             float maxSpeed = 0; 
 
@@ -116,33 +123,57 @@ public class PlayerController : MonoBehaviour
             {
                 case PlayerState.Moving:
                     maxSpeed = walkMaxSpeed;
-                    accelerationDirection *= walkAcceleration;
+                    accelerationVector *= walkAcceleration;
                     break;
                 case PlayerState.Boosting:
                     maxSpeed = boostMaxSpeed;
-                    accelerationDirection *= boostAcceleration;
+                    accelerationVector *= boostAcceleration;
                     break;
             }
 
             if (moveInput.sqrMagnitude < 0.001f)
             {
-                accelerationDirection = -moveDirection * friction;
+                accelerationVector = -horizontalVelocityVector * friction;
             }
 
-            moveDirection += accelerationDirection;
+            horizontalVelocityVector += accelerationVector;
 
-            if (moveDirection.magnitude > maxSpeed)
+            if (horizontalVelocityVector.magnitude > maxSpeed)
             {
-                moveDirection = moveDirection.normalized * maxSpeed;
+                horizontalVelocityVector = horizontalVelocityVector.normalized * maxSpeed;
             }
 
-            if (moveDirection.magnitude < 0.01f)
+            if (horizontalVelocityVector.magnitude < 0.01f)
             {
                 playerState = PlayerState.Idle;
             }
 
-            characterController.Move(moveDirection * Time.deltaTime);
+            transform.forward = horizontalVelocityVector;
         }
+
+        bool grounded = characterController.isGrounded;
+        if (grounded)
+        {
+            verticalVelocity = 0f;
+        }
+
+        if (jumpHeld)
+        {
+            if (grounded)
+            {
+                verticalVelocity = Mathf.Sqrt(jumpVelocity * -2f * gravity);
+            }
+            else if (verticalVelocity + hoverAcceleration < hoverMaxSpeed)
+            {
+                verticalVelocity += hoverAcceleration;
+            }
+            
+        }
+
+        verticalVelocity += gravity * Time.deltaTime;
+
+        characterController.Move((horizontalVelocityVector + Vector3.up * verticalVelocity) * Time.deltaTime);
+
     }
     #endregion
 }
