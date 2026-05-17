@@ -1,4 +1,5 @@
 using System;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,108 +15,113 @@ public class CameraController : MonoBehaviour
 {
 
     #region Public Fields
-    public GameObject player;
-    public Transform cameraFollowPoint;
-    [Range(2,20)]
-    public float distanceFromPlayer;
-    [Range(0,90)]
-    public float verticalCamAngleLimit;
-    [Range(0,2)]
-    public float sensitivity;
+    public GameObject orbit;
+    public GameObject lockOn;
+    public Transform player;
+    public Transform cameraLookAt;
+    public Transform playerLookAt;
+
     [Range(0,100)]
     public float lockOnExitThreshold;
+
+    [Header("Camera Smoothing")]
+    public Vector3 lookAtSmoothVelocity = new Vector3(0,0,0);
+    [Range(0,1)]
+    public float lookAtSmoothTime;
     #endregion
 
     #region Private Fields
     private CameraState cameraState;
-
+    private CinemachineInputAxisController orbitInput;
+    private CinemachineCamera orbitCamera;
     private Vector2 lookInput;
+    private Transform currentLookAt;
     #endregion
 
     #region Game Loop
     void Awake()
     {
         cameraState = CameraState.FreeAim;
+        orbitInput = orbit.GetComponent<CinemachineInputAxisController>();
+        orbitCamera = orbit.GetComponent<CinemachineCamera>();
+        currentLookAt = playerLookAt;
     }
 
     void LateUpdate()
     {
-        // MoveCamera();
-        PointCamera();
-        // PushCamera();
+        MoveCamera();
+        MoveCameraLookAt();
     }
     #endregion
 
     #region Input Methods
-    // public void OnLook(InputAction.CallbackContext context)
-    // {
-    //     lookInput = context.ReadValue<Vector2>();
-    // }
-
-    // public void OnLockOn(InputAction.CallbackContext context)
-    // {
-    //     switch (cameraState)
-    //     {
-    //         case CameraState.FreeAim:
-    //             cameraState = CameraState.LockedOn;
-    //             break;
-    //         case CameraState.LockedOn:
-    //             cameraState = CameraState.FreeAim;
-    //             break;
-    //     }
-    // }
+    public void OnLook(InputAction.CallbackContext context)
+    {
+        lookInput = context.ReadValue<Vector2>();
+    }
+    
+    public void OnLockOn(InputAction.CallbackContext context)
+    {
+        if (context.performed){
+            LockOn();
+        }    
+    }
     #endregion
 
     #region Camera Methods
-    // void MoveCamera()
-    // {
-    //     Vector2 speed = sensitivity * lookInput;
-
-    //     switch (cameraState)
-    //     {
-    //         case CameraState.LockedOn:
-    //             if (speed.sqrMagnitude > lockOnExitThreshold)
-    //             {
-    //                 cameraState = CameraState.FreeAim;
-    //             }
-    //             break;
-            
-    //         case CameraState.FreeAim:
-    //             if (speed.sqrMagnitude > 0.001f){
-
-    //                 Vector3 axisVertical = -transform.right;
-    //                 Vector3 axisHorizontal = transform.up;
-
-    //                 transform.RotateAround(player.transform.position, axisHorizontal.normalized, speed.x);
-
-    //                 GameObject temp = new GameObject();
-    //                 temp.transform.position = transform.position;
-    //                 temp.transform.rotation = transform.rotation;
-
-    //                 temp.transform.RotateAround(player.transform.position, axisVertical.normalized, speed.y);
-    //                 Vector3 offset = temp.transform.position - player.transform.position;
-    //                 Vector3 positivePosition = new Vector3(offset.x, Math.Abs(offset.y), offset.z);
-    //                 if (Math.Abs(Vector3.Angle(positivePosition.normalized, Vector3.up)) > verticalCamAngleLimit)
-    //                 {
-    //                     transform.RotateAround(player.transform.position, axisVertical.normalized, speed.y);
-    //                 }
-                    
-    //                 Destroy(temp);
-
-    //             }
-    //             break;
-    //     }
-    // }
-
-    void PointCamera()
+    void MoveCamera()
     {
-        transform.LookAt(cameraFollowPoint.position);
+        switch (cameraState)
+        {
+            case CameraState.LockedOn:
+                if (lookInput.sqrMagnitude > lockOnExitThreshold)
+                {
+                    //cameraState = CameraState.FreeAim;
+                }
+                break;
+        }
+        
     }
 
-    // void PushCamera()
-    // {
-    //     Vector3 offset = transform.position - player.transform.position;
-    //     transform.position += transform.forward * (offset.magnitude - distanceFromPlayer);
-    // }
+    void MoveCameraLookAt()
+    {
+        cameraLookAt.position = Vector3.SmoothDamp(cameraLookAt.position, currentLookAt.position, ref lookAtSmoothVelocity, lookAtSmoothTime);
+    }
+
+    void LockOn()
+    {
+        switch (cameraState)
+        {
+            case CameraState.FreeAim:
+                Collider[] hitColliders = Physics.OverlapSphere(player.transform.position, 100);
+                float minDist = Mathf.Infinity;
+                var currentCandidate = hitColliders[0];
+                foreach (var hitCollider in hitColliders)
+                {
+                    if (hitCollider.CompareTag("Lock On Point") && (hitCollider.transform.position - player.position).sqrMagnitude < minDist)
+                    {
+                        //must add angle check
+                        minDist = (hitCollider.transform.position - player.position).sqrMagnitude;
+                        currentCandidate = hitCollider;
+                    }
+
+                    currentLookAt = currentCandidate.GetComponent<Transform>();
+                    cameraState = CameraState.LockedOn;
+                    orbitCamera.Priority = -1;
+                    orbitInput.enabled = false;
+                }
+                break;
+
+            case CameraState.LockedOn:
+                currentLookAt = playerLookAt;
+                cameraState = CameraState.FreeAim;
+                orbitCamera.Priority = 1;
+                orbitInput.enabled = true;
+                orbit.transform.position = lockOn.transform.position;
+                orbit.transform.rotation = lockOn.transform.rotation;
+                break;
+        }
+        
+    }
     #endregion
 }

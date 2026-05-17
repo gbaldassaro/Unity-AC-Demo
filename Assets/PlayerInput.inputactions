@@ -34,7 +34,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Boost",
+                    "name": "Dash",
                     "type": "Button",
                     "id": "591c726a-c9de-4ed7-90f9-ce2178226178",
                     "expectedControlType": "",
@@ -64,6 +64,15 @@
                     "name": "LockOn",
                     "type": "Button",
                     "id": "c98672be-542d-417b-b433-2e93a9d35290",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Press(behavior=1)",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Boost",
+                    "type": "Button",
+                    "id": "4f703204-f4af-48f3-a3a1-dac8435d750b",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -188,7 +197,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard and Mouse",
-                    "action": "Boost",
+                    "action": "Dash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -199,7 +208,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
-                    "action": "Boost",
+                    "action": "Dash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -266,6 +275,28 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "LockOn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "136619b8-01dd-4f2c-9288-80496b28c58c",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard and Mouse",
+                    "action": "Boost",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "847000ba-a078-4f7a-af34-d6a00eafa7c0",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Boost",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     #region Public Fields
     [Header("Camera")]
     public Camera mainCamera;
+    public Transform cameraLookAt;
 
     [Header("Player")]
     [Range(0,50)]
@@ -37,11 +38,17 @@ public class PlayerController : MonoBehaviour
     public float friction;
     [Range(-10,0)]
     public float gravity;
+
+    [Header("Player Rotation Smoothing")]
+    public Vector3 playerRotationSmoothVelocity = new Vector3(0,0,0);
+    [Range(0,1)]
+    public float playerRotationSmoothTime;
     #endregion
     
     #region Private Fields
     private CharacterController characterController;
     private PlayerState playerState;
+    private CameraState cameraState;
 
     private Vector3 horizontalVelocityVector;
     private float verticalVelocity;
@@ -59,6 +66,7 @@ public class PlayerController : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         playerState = PlayerState.Idle;
+        cameraState = CameraState.FreeAim;
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -68,7 +76,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         MovePlayer();
-        Debug.Log("JumpHeld: " + jumpHeld);
     }
     #endregion
 
@@ -92,6 +99,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void OnDash(InputAction.CallbackContext context)
+    {
+        
+    }
+
     public void OnBoost(InputAction.CallbackContext context)
     {
         switch (playerState)
@@ -101,6 +113,19 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Boosting:
                 playerState = PlayerState.Moving;
+                break;
+        }
+    }
+
+    public void OnLockOn(InputAction.CallbackContext context)
+    {
+        switch (cameraState)
+        {
+            case CameraState.FreeAim:
+                cameraState = CameraState.LockedOn;
+                break;
+            case CameraState.LockedOn:
+                cameraState = CameraState.FreeAim;
                 break;
         }
     }
@@ -147,8 +172,16 @@ public class PlayerController : MonoBehaviour
             {
                 playerState = PlayerState.Idle;
             }
+        }
 
-            transform.forward = horizontalVelocityVector;
+        switch (cameraState){
+            case CameraState.FreeAim:
+                transform.forward = Vector3.SmoothDamp(transform.forward, horizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                break;
+            case CameraState.LockedOn:
+                Vector3 playerPosToLookAtPos = cameraLookAt.position - transform.position;
+                transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                break;
         }
 
         bool grounded = characterController.isGrounded;
@@ -175,5 +208,6 @@ public class PlayerController : MonoBehaviour
         characterController.Move((horizontalVelocityVector + Vector3.up * verticalVelocity) * Time.deltaTime);
 
     }
+
     #endregion
 }
