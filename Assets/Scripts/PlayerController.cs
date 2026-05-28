@@ -6,9 +6,8 @@ using UnityEngine.InputSystem;
 public enum PlayerState
 {
     Idle,
-    Moving,
-    Boosting,
-    Flying
+    Walking,
+    Boosting
 }
 #endregion
 
@@ -17,14 +16,14 @@ public class PlayerController : MonoBehaviour
     #region Public Fields
     [Header("Camera")]
     public Camera mainCamera;
-    public Transform cameraLookAt;
+    public Transform cameraLockOn;
 
     [Header("Player")]
-    [Range(0,50)]
+    [Range(0,5)]
     public float jumpVelocity;
     [Range(0,20)]
     public float hoverMaxSpeed;
-    [Range(0,10)]
+    [Range(0,1)]
     public float hoverAcceleration;
     [Range(0,10)]
     public float walkMaxSpeed;
@@ -36,7 +35,7 @@ public class PlayerController : MonoBehaviour
     public float boostAcceleration;
     [Range(0,1)]
     public float friction;
-    [Range(-10,0)]
+    [Range(-15,0)]
     public float gravity;
 
     [Header("Player Rotation Smoothing")]
@@ -94,39 +93,43 @@ public class PlayerController : MonoBehaviour
         switch (playerState)
         {
             case PlayerState.Idle:
-                playerState = PlayerState.Moving;
+                playerState = PlayerState.Walking;
                 break;
         }
     }
 
     public void OnDash(InputAction.CallbackContext context)
     {
-        
+        Debug.Log("Dash");
     }
 
     public void OnBoost(InputAction.CallbackContext context)
     {
         switch (playerState)
         {
-            case PlayerState.Moving:
+            case PlayerState.Walking:
+                Debug.Log("Boosting");
                 playerState = PlayerState.Boosting;
                 break;
             case PlayerState.Boosting:
-                playerState = PlayerState.Moving;
+                Debug.Log("Walking");
+                playerState = PlayerState.Walking;
                 break;
         }
     }
 
     public void OnLockOn(InputAction.CallbackContext context)
     {
-        switch (cameraState)
-        {
-            case CameraState.FreeAim:
-                cameraState = CameraState.LockedOn;
-                break;
-            case CameraState.LockedOn:
-                cameraState = CameraState.FreeAim;
-                break;
+        if (context.performed){
+            switch (cameraState)
+            {
+                case CameraState.FreeAim:
+                    cameraState = CameraState.LockedOn;
+                    break;
+                case CameraState.LockedOn:
+                    cameraState = CameraState.FreeAim;
+                    break;
+            }
         }
     }
     #endregion
@@ -146,7 +149,7 @@ public class PlayerController : MonoBehaviour
 
             switch (playerState)
             {
-                case PlayerState.Moving:
+                case PlayerState.Walking:
                     maxSpeed = walkMaxSpeed;
                     accelerationVector *= walkAcceleration;
                     break;
@@ -170,6 +173,7 @@ public class PlayerController : MonoBehaviour
 
             if (horizontalVelocityVector.magnitude < 0.01f)
             {
+                horizontalVelocityVector = Vector3.zero;
                 playerState = PlayerState.Idle;
             }
         }
@@ -179,7 +183,7 @@ public class PlayerController : MonoBehaviour
                 transform.forward = Vector3.SmoothDamp(transform.forward, horizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
                 break;
             case CameraState.LockedOn:
-                Vector3 playerPosToLookAtPos = cameraLookAt.position - transform.position;
+                Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
                 transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
                 break;
         }
@@ -210,4 +214,10 @@ public class PlayerController : MonoBehaviour
     }
 
     #endregion
+
+    void OnDrawGizmos() {
+        Gizmos.color = Color.red;
+        // Draw a line representing a vector from the object's position
+        Gizmos.DrawRay(transform.position, horizontalVelocityVector);
+    }
 }

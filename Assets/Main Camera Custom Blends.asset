@@ -16,8 +16,8 @@ MonoBehaviour:
   - From: Lock On Camera
     To: Orbit Camera
     Blend:
-      Style: 1
-      Time: 1
+      Style: 0
+      Time: 0
       CustomCurve:
         serializedVersion: 2
         m_Curve: []

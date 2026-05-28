@@ -18,7 +18,8 @@ public class CameraController : MonoBehaviour
     public GameObject orbit;
     public GameObject lockOn;
     public Transform player;
-    public Transform cameraLookAt;
+    public Transform orbitLookAt;
+    public Transform lockOnLookAt;
     public Transform playerLookAt;
 
     [Range(0,100)]
@@ -34,8 +35,9 @@ public class CameraController : MonoBehaviour
     private CameraState cameraState;
     private CinemachineInputAxisController orbitInput;
     private CinemachineCamera orbitCamera;
+    private CinemachineOrbitalFollow orbitalFollow;
     private Vector2 lookInput;
-    private Transform currentLookAt;
+    private Transform currentLockOn;
     #endregion
 
     #region Game Loop
@@ -44,13 +46,14 @@ public class CameraController : MonoBehaviour
         cameraState = CameraState.FreeAim;
         orbitInput = orbit.GetComponent<CinemachineInputAxisController>();
         orbitCamera = orbit.GetComponent<CinemachineCamera>();
-        currentLookAt = playerLookAt;
+        orbitalFollow = orbit.GetComponent<CinemachineOrbitalFollow>();
+        currentLockOn = playerLookAt;
     }
 
     void LateUpdate()
     {
         MoveCamera();
-        MoveCameraLookAt();
+        MoveLookAts();
     }
     #endregion
 
@@ -83,9 +86,10 @@ public class CameraController : MonoBehaviour
         
     }
 
-    void MoveCameraLookAt()
+    void MoveLookAts()
     {
-        cameraLookAt.position = Vector3.SmoothDamp(cameraLookAt.position, currentLookAt.position, ref lookAtSmoothVelocity, lookAtSmoothTime);
+        orbitLookAt.position = playerLookAt.position;
+        lockOnLookAt.position = Vector3.SmoothDamp(lockOnLookAt.position, currentLockOn.position, ref lookAtSmoothVelocity, lookAtSmoothTime);
     }
 
     void LockOn()
@@ -105,20 +109,20 @@ public class CameraController : MonoBehaviour
                         currentCandidate = hitCollider;
                     }
 
-                    currentLookAt = currentCandidate.GetComponent<Transform>();
-                    cameraState = CameraState.LockedOn;
+                    currentLockOn = currentCandidate.GetComponent<Transform>();
                     orbitCamera.Priority = -1;
                     orbitInput.enabled = false;
+                    orbitalFollow.enabled = false;
+                    cameraState = CameraState.LockedOn;
                 }
                 break;
 
             case CameraState.LockedOn:
-                currentLookAt = playerLookAt;
-                cameraState = CameraState.FreeAim;
                 orbitCamera.Priority = 1;
+                orbitCamera.ForceCameraPosition(lockOn.transform.position, lockOn.transform.rotation);
                 orbitInput.enabled = true;
-                orbit.transform.position = lockOn.transform.position;
-                orbit.transform.rotation = lockOn.transform.rotation;
+                orbitalFollow.enabled = true;
+                cameraState = CameraState.FreeAim;
                 break;
         }
         
