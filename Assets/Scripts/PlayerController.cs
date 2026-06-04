@@ -13,45 +13,43 @@ public enum PlayerState
 
 public class PlayerController : MonoBehaviour
 {
-    #region Public Fields
+    #region Serialized Fields
     [Header("Camera")]
-    public Camera mainCamera;
-    public Transform cameraLockOn;
+    [SerializeField] private CameraController mainCamera;
+    [SerializeField] private Transform cameraLockOn;
 
     [Header("Player")]
-    [Range(0,5)]
+    [Range(0,10)]
     public float jumpVelocity;
     [Range(0,20)]
     public float hoverMaxSpeed;
-    [Range(0,1)]
-    public float hoverAcceleration;
     [Range(0,10)]
     public float walkMaxSpeed;
-    [Range(0,1)]
-    public float walkAcceleration;
     [Range(0,20)]
     public float boostMaxSpeed;
-    [Range(0,1)]
-    public float boostAcceleration;
-    [Range(0,1)]
-    public float friction;
     [Range(-15,0)]
     public float gravity;
 
-    [Header("Player Rotation Smoothing")]
-    public Vector3 playerRotationSmoothVelocity = new Vector3(0,0,0);
+    [Header("Player Movement Smoothing")]
     [Range(0,1)]
     public float playerRotationSmoothTime;
+    [Range(0,1)]
+    public float playerHorizontalVelocitySmoothTime;
+    [Range(0,1)]
+    public float playerBoostVelocitySmoothTime;
     #endregion
     
     #region Private Fields
     private CharacterController characterController;
     private PlayerState playerState;
-    private CameraState cameraState;
 
+    private Vector3 desiredHorizontalVelocityVector;
     private Vector3 horizontalVelocityVector;
     private float verticalVelocity;
-    private Vector3 accelerationVector;
+
+    private Vector3 playerRotationSmoothVelocity = new Vector3(0,0,0);
+    private Vector3 playerHorizontalVelocitySmoothVelocity = new Vector3(0,0,0);
+    private float playerVerticalVelocitySmoothVelocity = 0f;
 
     private bool jumpHeld;
     #endregion
@@ -65,10 +63,6 @@ public class PlayerController : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         playerState = PlayerState.Idle;
-        cameraState = CameraState.FreeAim;
-
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
     }
 
 
@@ -100,7 +94,10 @@ public class PlayerController : MonoBehaviour
 
     public void OnDash(InputAction.CallbackContext context)
     {
-        Debug.Log("Dash");
+        if (context.performed)
+        {
+
+        }
     }
 
     public void OnBoost(InputAction.CallbackContext context)
@@ -108,28 +105,11 @@ public class PlayerController : MonoBehaviour
         switch (playerState)
         {
             case PlayerState.Walking:
-                Debug.Log("Boosting");
                 playerState = PlayerState.Boosting;
                 break;
             case PlayerState.Boosting:
-                Debug.Log("Walking");
                 playerState = PlayerState.Walking;
                 break;
-        }
-    }
-
-    public void OnLockOn(InputAction.CallbackContext context)
-    {
-        if (context.performed){
-            switch (cameraState)
-            {
-                case CameraState.FreeAim:
-                    cameraState = CameraState.LockedOn;
-                    break;
-                case CameraState.LockedOn:
-                    cameraState = CameraState.FreeAim;
-                    break;
-            }
         }
     }
     #endregion
@@ -137,13 +117,25 @@ public class PlayerController : MonoBehaviour
     #region Player Methods
     void MovePlayer()
     {
+        desiredHorizontalVelocityVector = Vector3.zero;
+        
         if (playerState != PlayerState.Idle)
         {
             Vector3 forward = mainCamera.transform.forward;
             forward.y = 0;
-            Vector3 right = mainCamera.transform.right;
+
+            Vector3 right = Vector3.zero; 
+            switch (mainCamera.cameraState){
+                case CameraState.FreeAim:
+                    right = mainCamera.transform.right;
+                    break;
+                case CameraState.LockedOn:
+                    right = transform.right;
+                    break;
+            }
             right.y = 0;
-            accelerationVector = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
+
+            desiredHorizontalVelocityVector = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
 
             float maxSpeed = 0; 
 
@@ -151,25 +143,15 @@ public class PlayerController : MonoBehaviour
             {
                 case PlayerState.Walking:
                     maxSpeed = walkMaxSpeed;
-                    accelerationVector *= walkAcceleration;
                     break;
                 case PlayerState.Boosting:
                     maxSpeed = boostMaxSpeed;
-                    accelerationVector *= boostAcceleration;
                     break;
             }
 
-            if (moveInput.sqrMagnitude < 0.001f)
-            {
-                accelerationVector = -horizontalVelocityVector * friction;
-            }
+            desiredHorizontalVelocityVector *= maxSpeed;
 
-            horizontalVelocityVector += accelerationVector;
-
-            if (horizontalVelocityVector.magnitude > maxSpeed)
-            {
-                horizontalVelocityVector = horizontalVelocityVector.normalized * maxSpeed;
-            }
+            horizontalVelocityVector = Vector3.SmoothDamp(horizontalVelocityVector, desiredHorizontalVelocityVector, ref playerHorizontalVelocitySmoothVelocity, playerHorizontalVelocitySmoothTime);
 
             if (horizontalVelocityVector.magnitude < 0.01f)
             {
@@ -178,12 +160,13 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        switch (cameraState){
+        switch (mainCamera.cameraState){
             case CameraState.FreeAim:
                 transform.forward = Vector3.SmoothDamp(transform.forward, horizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
                 break;
             case CameraState.LockedOn:
                 Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
+                playerPosToLookAtPos.y *= 0.5f;
                 transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
                 break;
         }
@@ -200,9 +183,9 @@ public class PlayerController : MonoBehaviour
             {
                 verticalVelocity = Mathf.Sqrt(jumpVelocity * -2f * gravity);
             }
-            else if (verticalVelocity + hoverAcceleration < hoverMaxSpeed)
+            else
             {
-                verticalVelocity += hoverAcceleration;
+                verticalVelocity = Mathf.SmoothDamp(verticalVelocity, hoverMaxSpeed, ref playerVerticalVelocitySmoothVelocity, playerBoostVelocitySmoothTime);
             }
             
         }
@@ -217,7 +200,6 @@ public class PlayerController : MonoBehaviour
 
     void OnDrawGizmos() {
         Gizmos.color = Color.red;
-        // Draw a line representing a vector from the object's position
         Gizmos.DrawRay(transform.position, horizontalVelocityVector);
     }
 }

@@ -14,46 +14,45 @@ public enum CameraState
 public class CameraController : MonoBehaviour
 {
 
+    #region Serialized Fields
+    [SerializeField] private GameObject orbitCamera;
+    [SerializeField] private GameObject lockOnCamera;
+    [SerializeField] private Transform player;
+    [SerializeField] private Transform lockOnLookAt;
+    [SerializeField] private Transform playerLookAt;
+    #endregion
+
     #region Public Fields
-    public GameObject orbit;
-    public GameObject lockOn;
-    public Transform player;
-    public Transform orbitLookAt;
-    public Transform lockOnLookAt;
-    public Transform playerLookAt;
-
-    [Range(0,100)]
-    public float lockOnExitThreshold;
-
-    [Header("Camera Smoothing")]
-    public Vector3 lookAtSmoothVelocity = new Vector3(0,0,0);
+    public CameraState cameraState;
+    
     [Range(0,1)]
-    public float lookAtSmoothTime;
+    [Tooltip("How long, in seconds, the player must use the look input to break lock.")]
+    public float lockOnExitTime;
+        
     #endregion
 
     #region Private Fields
-    private CameraState cameraState;
-    private CinemachineInputAxisController orbitInput;
-    private CinemachineCamera orbitCamera;
-    private CinemachineOrbitalFollow orbitalFollow;
     private Vector2 lookInput;
     private Transform currentLockOn;
+    private float lookTime;
     #endregion
 
     #region Game Loop
     void Awake()
     {
         cameraState = CameraState.FreeAim;
-        orbitInput = orbit.GetComponent<CinemachineInputAxisController>();
-        orbitCamera = orbit.GetComponent<CinemachineCamera>();
-        orbitalFollow = orbit.GetComponent<CinemachineOrbitalFollow>();
         currentLockOn = playerLookAt;
     }
 
     void LateUpdate()
     {
-        MoveCamera();
-        MoveLookAts();
+        switch (cameraState)
+        {
+            case CameraState.LockedOn:
+            BreakLock();
+            MoveLookAt();
+            break;   
+        }
     }
     #endregion
 
@@ -62,7 +61,7 @@ public class CameraController : MonoBehaviour
     {
         lookInput = context.ReadValue<Vector2>();
     }
-    
+
     public void OnLockOn(InputAction.CallbackContext context)
     {
         if (context.performed){
@@ -72,24 +71,24 @@ public class CameraController : MonoBehaviour
     #endregion
 
     #region Camera Methods
-    void MoveCamera()
+    void BreakLock()
     {
-        switch (cameraState)
+        if (lookInput.sqrMagnitude > 0.001f)
         {
-            case CameraState.LockedOn:
-                if (lookInput.sqrMagnitude > lockOnExitThreshold)
-                {
-                    //cameraState = CameraState.FreeAim;
-                }
-                break;
+            lookTime += Time.deltaTime;
+        }        
+        else lookTime = 0;
+
+        if (lookTime > lockOnExitTime)
+        {
+            LockOn();
+            lookTime = 0;
         }
-        
     }
 
-    void MoveLookAts()
+    void MoveLookAt()
     {
-        orbitLookAt.position = playerLookAt.position;
-        lockOnLookAt.position = Vector3.SmoothDamp(lockOnLookAt.position, currentLockOn.position, ref lookAtSmoothVelocity, lookAtSmoothTime);
+        lockOnLookAt.position = currentLockOn.position;
     }
 
     void LockOn()
@@ -110,22 +109,17 @@ public class CameraController : MonoBehaviour
                     }
 
                     currentLockOn = currentCandidate.GetComponent<Transform>();
-                    orbitCamera.Priority = -1;
-                    orbitInput.enabled = false;
-                    orbitalFollow.enabled = false;
+                    lockOnCamera.SetActive(true);
                     cameraState = CameraState.LockedOn;
                 }
                 break;
 
             case CameraState.LockedOn:
-                orbitCamera.Priority = 1;
-                orbitCamera.ForceCameraPosition(lockOn.transform.position, lockOn.transform.rotation);
-                orbitInput.enabled = true;
-                orbitalFollow.enabled = true;
+                lockOnCamera.SetActive(false);
                 cameraState = CameraState.FreeAim;
                 break;
         }
-        
+    
     }
     #endregion
 }
