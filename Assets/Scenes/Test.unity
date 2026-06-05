@@ -508,7 +508,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 70ab46f402bd0884e875033ea2dbf095, type: 2}
+  - {fileID: 2100000, guid: 4a2abd4f67aefc24b9c6cca2d197adc7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -605,7 +605,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 66bb025986bd66c479f0fe7e007798b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -678,7 +678,7 @@ Transform:
   m_GameObject: {fileID: 259297797}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.5666106, z: -0, w: 0.8239857}
-  m_LocalPosition: {x: 0, y: 0.47, z: 0}
+  m_LocalPosition: {x: 0, y: 0.02, z: 0}
   m_LocalScale: {x: 0.51392746, y: 0.51392746, z: 0.51392746}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -878,7 +878,7 @@ GameObject:
   - component: {fileID: 418160367}
   - component: {fileID: 418160366}
   m_Layer: 0
-  m_Name: Player Input
+  m_Name: Player Input Handler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -974,11 +974,35 @@ MonoBehaviour:
     m_ActionId: 591c726a-c9de-4ed7-90f9-ce2178226178
     m_ActionName: 'Player/Boost[/Keyboard/leftShift]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1742029569}
+        m_TargetAssemblyTypeName: RangedWeaponController, Assembly-CSharp
+        m_MethodName: OnShootRight
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: bb034d51-eb81-4664-8324-45a6d505891e
     m_ActionName: 'Player/ShootRight[/Mouse/rightButton]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2123372435}
+        m_TargetAssemblyTypeName: RangedWeaponController, Assembly-CSharp
+        m_MethodName: OnShootLeft
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: a579b903-399c-4e26-9847-ce940f0caacb
     m_ActionName: 'Player/ShootLeft[/Mouse/leftButton]'
   - m_PersistentCalls:
@@ -1013,7 +1037,7 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 4f703204-f4af-48f3-a3a1-dac8435d750b
     m_ActionName: 'Player/Boost[/Keyboard/tab]'
-  m_NeverAutoSwitchControlSchemes: 1
+  m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
@@ -1082,7 +1106,7 @@ GameObject:
   - component: {fileID: 447818591}
   m_Layer: 0
   m_Name: Main Camera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1249,13 +1273,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e54f8f7b1880744db41bd51560cd554, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraController
-  orbitCamera: {fileID: 56032900}
   lockOnCamera: {fileID: 973680179}
   player: {fileID: 3214175917780754795}
+  playerController: {fileID: 2180797343683755513}
   lockOnLookAt: {fileID: 92621035}
   playerLookAt: {fileID: 1893599044}
   cameraState: 0
   lockOnExitTime: 0.4
+  lockOnOffsetMagnitude: 2.25
+  offsetSmoothTime: 1
 --- !u!1 &647628141
 GameObject:
   m_ObjectHideFlags: 0
@@ -1336,7 +1362,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 70ab46f402bd0884e875033ea2dbf095, type: 2}
+  - {fileID: 2100000, guid: 4a2abd4f67aefc24b9c6cca2d197adc7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1492,7 +1518,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0427e2191acf34749a8a836d077bc02c, type: 2}
+  - {fileID: 2100000, guid: 4841379cd54e14b419448a3b758553ba, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1684,7 +1710,7 @@ MonoBehaviour:
       Curvature: {x: 2, y: 11}
       BarrelClipping: 0.25
       Anamorphism: 0
-  BlendHint: 12
+  BlendHint: 44
 --- !u!114 &973680184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1700,11 +1726,11 @@ MonoBehaviour:
   Composition:
     ScreenPosition: {x: 0, y: 0}
     DeadZone:
-      Enabled: 0
-      Size: {x: 0.2, y: 0.2}
+      Enabled: 1
+      Size: {x: 0.1, y: 0.1}
     HardLimits:
-      Enabled: 0
-      Size: {x: 0.8, y: 0.8}
+      Enabled: 1
+      Size: {x: 0.25, y: 0.25}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
   TargetOffset: {x: 0, y: 0, z: 0}
@@ -1765,6 +1791,53 @@ Transform:
   - {fileID: 647628142}
   m_Father: {fileID: 386699399}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1742029567
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1742029568}
+  - component: {fileID: 1742029569}
+  m_Layer: 0
+  m_Name: Right Hand Weapon
+  m_TagString: Right Hand
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1742029568
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742029567}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.753, y: 0.197, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3214175917780754795}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1742029569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742029567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07cdacf990018bd47bd02e942b905683, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RangedWeaponController
+  currentRangedWeaponData: {fileID: 11400000, guid: b93112f6c2d19fe4cadaa1d2a0a377e4, type: 2}
+  rightHand: 1
+  gunModel: {fileID: 0}
 --- !u!1 &1893599043
 GameObject:
   m_ObjectHideFlags: 0
@@ -1822,7 +1895,7 @@ Transform:
   m_GameObject: {fileID: 2090656320}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.5666106, z: -0, w: 0.8239857}
-  m_LocalPosition: {x: 0, y: 0.47, z: 0}
+  m_LocalPosition: {x: 0, y: 0.02, z: 0}
   m_LocalScale: {x: 0.51392746, y: 0.51392746, z: 0.51392746}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1851,6 +1924,53 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &2123372433
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2123372434}
+  - component: {fileID: 2123372435}
+  m_Layer: 0
+  m_Name: Left Hand Weapon
+  m_TagString: Left Hand
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2123372434
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123372433}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.753, y: 0.197, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3214175917780754795}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2123372435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123372433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07cdacf990018bd47bd02e942b905683, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RangedWeaponController
+  currentRangedWeaponData: {fileID: 11400000, guid: b93112f6c2d19fe4cadaa1d2a0a377e4, type: 2}
+  rightHand: 0
+  gunModel: {fileID: 0}
 --- !u!4 &115366805432428760
 Transform:
   m_ObjectHideFlags: 0
@@ -1882,14 +2002,17 @@ MonoBehaviour:
   mainCamera: {fileID: 447818591}
   cameraLockOn: {fileID: 92621035}
   jumpVelocity: 4.1
-  hoverMaxSpeed: 13
-  hoverAcceleration: 14.87
-  walkMaxSpeed: 2.21
-  boostMaxSpeed: 8.3
+  hoverMaxSpeed: 17.6
+  walkMaxSpeed: 3
+  boostMaxSpeed: 10.73
+  dashSpeed: 36
   gravity: -9.81
   playerRotationSmoothTime: 0.05
   playerHorizontalVelocitySmoothTime: 0.247
   playerBoostVelocitySmoothTime: 0.837
+  rightHandWeapon: {fileID: 1742029569}
+  leftHandWeapon: {fileID: 2123372435}
+  moveInput: {x: 0, y: 0}
 --- !u!1 &2510228514411369139
 GameObject:
   m_ObjectHideFlags: 0
@@ -1921,6 +2044,8 @@ Transform:
   m_Children:
   - {fileID: 1893599044}
   - {fileID: 115366805432428760}
+  - {fileID: 1742029568}
+  - {fileID: 2123372434}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6435954966127944353

@@ -3173,15 +3173,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   mainCamera: {fileID: 0}
+  cameraLockOn: {fileID: 0}
   jumpVelocity: 0.8
   hoverMaxSpeed: 13
-  hoverAcceleration: 0.33
   walkMaxSpeed: 5.31
-  walkAcceleration: 0.462
   boostMaxSpeed: 13.7
-  boostAcceleration: 0.538
-  friction: 0.119
+  dashSpeed: 20
   gravity: -9.81
+  playerRotationSmoothTime: 0
+  playerHorizontalVelocitySmoothTime: 0
+  playerBoostVelocitySmoothTime: 0
+  moveInput: {x: 0, y: 0}
 --- !u!114 &5657250283357195116
 MonoBehaviour:
   m_ObjectHideFlags: 0

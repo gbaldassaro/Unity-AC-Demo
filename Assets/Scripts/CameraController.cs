@@ -15,9 +15,9 @@ public class CameraController : MonoBehaviour
 {
 
     #region Serialized Fields
-    [SerializeField] private GameObject orbitCamera;
     [SerializeField] private GameObject lockOnCamera;
     [SerializeField] private Transform player;
+    [SerializeField] private PlayerController playerController;
     [SerializeField] private Transform lockOnLookAt;
     [SerializeField] private Transform playerLookAt;
     #endregion
@@ -28,6 +28,11 @@ public class CameraController : MonoBehaviour
     [Range(0,1)]
     [Tooltip("How long, in seconds, the player must use the look input to break lock.")]
     public float lockOnExitTime;
+
+    [Range(0,5)]
+    public float lockOnOffsetMagnitude;
+    [Range(0,1)]
+    public float offsetSmoothTime;
         
     #endregion
 
@@ -35,6 +40,11 @@ public class CameraController : MonoBehaviour
     private Vector2 lookInput;
     private Transform currentLockOn;
     private float lookTime;
+
+    private CinemachineFollow cinemachineFollow;
+    private float targetOffset;
+
+    private float offsetSmoothVelocity = 0f;
     #endregion
 
     #region Game Loop
@@ -42,6 +52,9 @@ public class CameraController : MonoBehaviour
     {
         cameraState = CameraState.FreeAim;
         currentLockOn = playerLookAt;
+
+        cinemachineFollow = lockOnCamera.GetComponent<CinemachineFollow>();
+        targetOffset = lockOnOffsetMagnitude;
     }
 
     void LateUpdate()
@@ -89,6 +102,16 @@ public class CameraController : MonoBehaviour
     void MoveLookAt()
     {
         lockOnLookAt.position = currentLockOn.position;
+
+        if (playerController.moveInput.x > 0)
+        {
+            targetOffset = -1 * lockOnOffsetMagnitude;
+        }
+        else if (playerController.moveInput.x < 0)
+        {
+            targetOffset = lockOnOffsetMagnitude;
+        }
+        cinemachineFollow.FollowOffset.x = Mathf.SmoothDamp(cinemachineFollow.FollowOffset.x, targetOffset, ref offsetSmoothVelocity, offsetSmoothTime);
     }
 
     void LockOn()

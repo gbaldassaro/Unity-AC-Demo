@@ -27,6 +27,8 @@ public class PlayerController : MonoBehaviour
     public float walkMaxSpeed;
     [Range(0,20)]
     public float boostMaxSpeed;
+    [Range(20, 100)]
+    public float dashSpeed;
     [Range(-15,0)]
     public float gravity;
 
@@ -37,13 +39,17 @@ public class PlayerController : MonoBehaviour
     public float playerHorizontalVelocitySmoothTime;
     [Range(0,1)]
     public float playerBoostVelocitySmoothTime;
+
+    [Header("Weapons")]
+    [SerializeField] private RangedWeaponController rightHandWeapon;
+    [SerializeField] private RangedWeaponController leftHandWeapon;
     #endregion
     
     #region Private Fields
     private CharacterController characterController;
     private PlayerState playerState;
 
-    private Vector3 desiredHorizontalVelocityVector;
+    private Vector3 desiredHorizontalVelocityVector = Vector3.forward;
     private Vector3 horizontalVelocityVector;
     private float verticalVelocity;
 
@@ -55,7 +61,7 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Input Fields
-    private Vector2 moveInput;
+    public Vector2 moveInput;
     #endregion
 
     #region Game Loop
@@ -96,7 +102,8 @@ public class PlayerController : MonoBehaviour
     {
         if (context.performed)
         {
-
+            horizontalVelocityVector = desiredHorizontalVelocityVector.normalized * dashSpeed;
+            playerState = PlayerState.Boosting;
         }
     }
 
@@ -125,7 +132,8 @@ public class PlayerController : MonoBehaviour
             forward.y = 0;
 
             Vector3 right = Vector3.zero; 
-            switch (mainCamera.cameraState){
+            switch (mainCamera.cameraState)
+            {
                 case CameraState.FreeAim:
                     right = mainCamera.transform.right;
                     break;
@@ -160,14 +168,17 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        switch (mainCamera.cameraState){
+        switch (mainCamera.cameraState)
+        {
             case CameraState.FreeAim:
                 transform.forward = Vector3.SmoothDamp(transform.forward, horizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
                 break;
             case CameraState.LockedOn:
                 Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
-                playerPosToLookAtPos.y *= 0.5f;
+                playerPosToLookAtPos.y *= 0.2f;
                 transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                rightHandWeapon.gunModel.transform.LookAt(cameraLockOn.position);
+                leftHandWeapon.gunModel.transform.LookAt(cameraLockOn.position);
                 break;
         }
 
