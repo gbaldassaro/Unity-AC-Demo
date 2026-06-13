@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8cbf5909254459641b3aaac4739860b1, type: 3}
-  m_Name: Sniper Data
+  m_Name: Fire Spray Data
   m_EditorClassIdentifier: Assembly-CSharp::RangedWeaponData
-  weaponName: Sniper
-  gunModel: {fileID: 4134994354837483751, guid: 9a1a0ff875d8730498c0bc82fa9f390c, type: 3}
-  projectilePrefab: {fileID: 3866012601695674764, guid: 20c323dcdc0138c499a030c194542fce, type: 3}
-  projectileSpeed: 64.03
-  timeBetweenProjectiles: 2.77
-  damagePerProjectile: 16.35
-  magazineSize: 8
-  reloadTime: 8
-  projectileSpread: 0
+  weaponName: Fire Spray
+  gunModel: {fileID: 4134994354837483751, guid: 5cd0aee6da2902540a5cd18b3f814a39, type: 3}
+  projectilePrefab: {fileID: 3866012601695674764, guid: 4904a36bd8d415b4b9cdf2c46d7cea3f, type: 3}
+  projectileSpeed: 44.96
+  timeBetweenProjectiles: 0.05
+  damagePerProjectile: 5.03
+  magazineSize: 100
+  reloadTime: 4
+  projectileSpread: 0.63

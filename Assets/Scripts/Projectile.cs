@@ -1,8 +1,7 @@
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
+public class Projectile : MonoBehaviour
 {
-    public float speed;
     public float damage;
 
     void Awake()
@@ -12,7 +11,7 @@ public class Bullet : MonoBehaviour
 
     void Update()
     {
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        
     }
 
     void OnTriggerEnter(Collider other) 

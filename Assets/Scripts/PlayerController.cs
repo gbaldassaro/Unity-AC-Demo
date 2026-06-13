@@ -40,9 +40,9 @@ public class PlayerController : MonoBehaviour
     [Range(0,1)]
     public float playerBoostVelocitySmoothTime;
 
-    [Header("Weapons")]
-    [SerializeField] private RangedWeaponController rightHandWeapon;
-    [SerializeField] private RangedWeaponController leftHandWeapon;
+    [Header("Arms")]
+    [SerializeField] private Transform rightArm;
+    [SerializeField] private Transform leftArm;
     #endregion
     
     #region Private Fields
@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Input Fields
-    public Vector2 moveInput;
+    [HideInInspector] public Vector2 moveInput;
     #endregion
 
     #region Game Loop
@@ -125,61 +125,43 @@ public class PlayerController : MonoBehaviour
     void MovePlayer()
     {
         desiredHorizontalVelocityVector = Vector3.zero;
-        
-        if (playerState != PlayerState.Idle)
-        {
-            Vector3 forward = mainCamera.transform.forward;
-            forward.y = 0;
 
-            Vector3 right = Vector3.zero; 
-            switch (mainCamera.cameraState)
-            {
-                case CameraState.FreeAim:
-                    right = mainCamera.transform.right;
-                    break;
-                case CameraState.LockedOn:
-                    right = transform.right;
-                    break;
-            }
-            right.y = 0;
+        Vector3 forward = mainCamera.transform.forward;
+        forward.y = 0;
 
-            desiredHorizontalVelocityVector = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
-
-            float maxSpeed = 0; 
-
-            switch (playerState)
-            {
-                case PlayerState.Walking:
-                    maxSpeed = walkMaxSpeed;
-                    break;
-                case PlayerState.Boosting:
-                    maxSpeed = boostMaxSpeed;
-                    break;
-            }
-
-            desiredHorizontalVelocityVector *= maxSpeed;
-
-            horizontalVelocityVector = Vector3.SmoothDamp(horizontalVelocityVector, desiredHorizontalVelocityVector, ref playerHorizontalVelocitySmoothVelocity, playerHorizontalVelocitySmoothTime);
-
-            if (horizontalVelocityVector.magnitude < 0.01f)
-            {
-                horizontalVelocityVector = Vector3.zero;
-                playerState = PlayerState.Idle;
-            }
-        }
-
+        Vector3 right = Vector3.zero; 
         switch (mainCamera.cameraState)
         {
             case CameraState.FreeAim:
-                transform.forward = Vector3.SmoothDamp(transform.forward, horizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                right = mainCamera.transform.right;
                 break;
             case CameraState.LockedOn:
-                Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
-                playerPosToLookAtPos.y *= 0.2f;
-                transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
-                rightHandWeapon.gunModel.transform.LookAt(cameraLockOn.position);
-                leftHandWeapon.gunModel.transform.LookAt(cameraLockOn.position);
+                right = transform.right;
                 break;
+        }
+        right.y = 0;
+
+        desiredHorizontalVelocityVector = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
+
+        float maxSpeed = 0; 
+
+        switch (playerState)
+        {
+            case PlayerState.Walking:
+                maxSpeed = walkMaxSpeed;
+                break;
+            case PlayerState.Boosting:
+                maxSpeed = boostMaxSpeed;
+                break;
+        }
+
+        desiredHorizontalVelocityVector *= maxSpeed;
+
+        horizontalVelocityVector = Vector3.SmoothDamp(horizontalVelocityVector, desiredHorizontalVelocityVector, ref playerHorizontalVelocitySmoothVelocity, playerHorizontalVelocitySmoothTime);
+
+        if (horizontalVelocityVector.sqrMagnitude < 0.001f)
+        {
+            horizontalVelocityVector = Vector3.zero;
         }
 
         bool grounded = characterController.isGrounded;
@@ -205,6 +187,32 @@ public class PlayerController : MonoBehaviour
 
         characterController.Move((horizontalVelocityVector + Vector3.up * verticalVelocity) * Time.deltaTime);
 
+        PointPlayer();
+
+        if (desiredHorizontalVelocityVector.sqrMagnitude < 0.001f && 
+            horizontalVelocityVector.sqrMagnitude < 0.001f && 
+            verticalVelocity < 0.001f)
+        {
+            playerState = PlayerState.Idle;
+        }
+
+    }
+
+    void PointPlayer(){
+        switch (mainCamera.cameraState)
+        {
+            case CameraState.FreeAim:
+                transform.forward = Vector3.SmoothDamp(transform.forward, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                break;
+
+            case CameraState.LockedOn:
+                Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
+                playerPosToLookAtPos.y *= 0.2f;
+                transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                rightArm.transform.LookAt(cameraLockOn.position);
+                leftArm.transform.LookAt(cameraLockOn.position);
+                break;
+        }
     }
 
     #endregion

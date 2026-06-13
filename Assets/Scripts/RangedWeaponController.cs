@@ -11,8 +11,9 @@ public class RangedWeaponController : MonoBehaviour
 
     private int currentAmmo;
 
-    public GameObject gunModel;
-    private Transform muzzle;
+    private GameObject gunModel;
+    private Transform projectileExitPoint;
+    private GameObject projectileExitLight;
 
     private bool shootHeld = false;
     private bool canShoot = true;
@@ -22,7 +23,8 @@ public class RangedWeaponController : MonoBehaviour
         currentAmmo = currentRangedWeaponData.magazineSize;
         gunModel = Instantiate(currentRangedWeaponData.gunModel, transform.position, transform.rotation);
         gunModel.transform.parent = gameObject.transform;
-        muzzle = gunModel.transform.Find("Muzzle");
+        projectileExitPoint = gunModel.transform.Find("Projectile Exit Point");
+        projectileExitLight = projectileExitPoint.transform.Find("Projectile Exit Light").gameObject;
     }
 
     void Update()
@@ -37,18 +39,26 @@ public class RangedWeaponController : MonoBehaviour
     {
         if (canShoot)
         {
-            Bullet bullet = Instantiate(currentRangedWeaponData.bulletPrefab, muzzle.position, muzzle.rotation);
-            bullet.speed = currentRangedWeaponData.bulletSpeed;
-            bullet.damage = currentRangedWeaponData.damagePerBullet;
+            projectileExitLight.SetActive(true);
+            StartCoroutine(lightWaitTimer());
+            Projectile projectile = Instantiate(currentRangedWeaponData.projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation);
+            projectile.GetComponent<Rigidbody>().linearVelocity = projectile.transform.forward * currentRangedWeaponData.projectileSpeed;
+            projectile.damage = currentRangedWeaponData.damagePerProjectile;
             canShoot = false;
-            StartCoroutine(bulletWaitTimer());
+            StartCoroutine(projectileWaitTimer());
         }
     }
 
-    IEnumerator bulletWaitTimer()
+    IEnumerator projectileWaitTimer()
     { 
-        yield return new WaitForSeconds(currentRangedWeaponData.timeBetweenBullets);
+        yield return new WaitForSeconds(currentRangedWeaponData.timeBetweenProjectiles);
         canShoot = true;
+    }
+
+    IEnumerator lightWaitTimer()
+    { 
+        yield return new WaitForSeconds(0.05f);
+        projectileExitLight.SetActive(false);
     }
 
     public void OnShootRight(InputAction.CallbackContext context)

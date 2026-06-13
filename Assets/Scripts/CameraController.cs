@@ -19,7 +19,6 @@ public class CameraController : MonoBehaviour
     [SerializeField] private Transform player;
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Transform lockOnLookAt;
-    [SerializeField] private Transform playerLookAt;
     #endregion
 
     #region Public Fields
@@ -33,7 +32,6 @@ public class CameraController : MonoBehaviour
     public float lockOnOffsetMagnitude;
     [Range(0,1)]
     public float offsetSmoothTime;
-        
     #endregion
 
     #region Private Fields
@@ -51,7 +49,6 @@ public class CameraController : MonoBehaviour
     void Awake()
     {
         cameraState = CameraState.FreeAim;
-        currentLockOn = playerLookAt;
 
         cinemachineFollow = lockOnCamera.GetComponent<CinemachineFollow>();
         targetOffset = lockOnOffsetMagnitude;
@@ -101,7 +98,9 @@ public class CameraController : MonoBehaviour
 
     void MoveLookAt()
     {
-        lockOnLookAt.position = currentLockOn.position;
+        if (currentLockOn != null){
+            lockOnLookAt.position = currentLockOn.position;
+        }
 
         if (playerController.moveInput.x > 0)
         {

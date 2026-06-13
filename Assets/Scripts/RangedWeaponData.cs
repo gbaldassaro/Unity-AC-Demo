@@ -7,14 +7,14 @@ public class RangedWeaponData : ScriptableObject
 
     public GameObject gunModel;
 
-    public Bullet bulletPrefab;
-    public float bulletSpeed;
+    public Projectile projectilePrefab;
+    public float projectileSpeed;
 
-    public float timeBetweenBullets;
-    public float damagePerBullet;
+    public float timeBetweenProjectiles;
+    public float damagePerProjectile;
 
     public int magazineSize;
     public float reloadTime;
 
-    public float bulletSpread;
+    public float projectileSpread;
 }
