@@ -1,7 +1,6 @@
 using System;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 #region Enums
 public enum CameraState
@@ -15,27 +14,32 @@ public class CameraController : MonoBehaviour
 {
 
     #region Serialized Fields
+    [Header("Player Input")]
+    [SerializeField] private InputHandler input;
+
+    [Header("Lock On")]
     [SerializeField] private GameObject lockOnCamera;
+    [SerializeField] private Transform lockOnLookAt;
+
+    [Header("Player")]
     [SerializeField] private Transform player;
     [SerializeField] private PlayerController playerController;
-    [SerializeField] private Transform lockOnLookAt;
-    #endregion
 
-    #region Public Fields
-    public CameraState cameraState;
-    
+    [Header("Camera Variables")]
     [Range(0,1)]
     [Tooltip("How long, in seconds, the player must use the look input to break lock.")]
     public float lockOnExitTime;
-
     [Range(0,5)]
     public float lockOnOffsetMagnitude;
     [Range(0,1)]
     public float offsetSmoothTime;
     #endregion
 
+    #region Public Fields
+    public CameraState cameraState;
+    #endregion
+
     #region Private Fields
-    private Vector2 lookInput;
     private Transform currentLockOn;
     private float lookTime;
 
@@ -54,6 +58,15 @@ public class CameraController : MonoBehaviour
         targetOffset = lockOnOffsetMagnitude;
     }
 
+    void Update()
+    {
+        if (input.lockOnPressed)
+        {
+            LockOn();
+            input.lockOnPressed = false;
+        }
+    }
+
     void LateUpdate()
     {
         switch (cameraState)
@@ -66,24 +79,10 @@ public class CameraController : MonoBehaviour
     }
     #endregion
 
-    #region Input Methods
-    public void OnLook(InputAction.CallbackContext context)
-    {
-        lookInput = context.ReadValue<Vector2>();
-    }
-
-    public void OnLockOn(InputAction.CallbackContext context)
-    {
-        if (context.performed){
-            LockOn();
-        }    
-    }
-    #endregion
-
     #region Camera Methods
     void BreakLock()
     {
-        if (lookInput.sqrMagnitude > 0.001f)
+        if (input.lookInput.sqrMagnitude > 0.001f)
         {
             lookTime += Time.deltaTime;
         }        
@@ -102,11 +101,11 @@ public class CameraController : MonoBehaviour
             lockOnLookAt.position = currentLockOn.position;
         }
 
-        if (playerController.moveInput.x > 0)
+        if (input.moveInput.x > 0)
         {
             targetOffset = -1 * lockOnOffsetMagnitude;
         }
-        else if (playerController.moveInput.x < 0)
+        else if (input.moveInput.x < 0)
         {
             targetOffset = lockOnOffsetMagnitude;
         }

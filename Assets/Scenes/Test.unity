@@ -968,6 +968,7 @@ GameObject:
   m_Component:
   - component: {fileID: 418160367}
   - component: {fileID: 418160366}
+  - component: {fileID: 418160368}
   m_Layer: 0
   m_Name: Player Input Handler
   m_TagString: Untagged
@@ -1002,8 +1003,8 @@ MonoBehaviour:
   m_ActionEvents:
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2180797343683755513}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnJump
         m_Mode: 0
         m_Arguments:
@@ -1018,8 +1019,8 @@ MonoBehaviour:
     m_ActionName: 'Player/Jump[/Keyboard/space]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 447818591}
-        m_TargetAssemblyTypeName: CameraController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnLook
         m_Mode: 0
         m_Arguments:
@@ -1034,8 +1035,8 @@ MonoBehaviour:
     m_ActionName: 'Player/Look[/Mouse/delta/up,/Mouse/delta/down,/Mouse/delta/left,/Mouse/delta/right]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2180797343683755513}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnMove
         m_Mode: 0
         m_Arguments:
@@ -1050,8 +1051,8 @@ MonoBehaviour:
     m_ActionName: 'Player/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2180797343683755513}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnDash
         m_Mode: 0
         m_Arguments:
@@ -1066,8 +1067,8 @@ MonoBehaviour:
     m_ActionName: 'Player/Boost[/Keyboard/leftShift]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1742029569}
-        m_TargetAssemblyTypeName: RangedWeaponController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnShootRight
         m_Mode: 0
         m_Arguments:
@@ -1082,8 +1083,8 @@ MonoBehaviour:
     m_ActionName: 'Player/ShootRight[/Mouse/rightButton]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1759606533}
-        m_TargetAssemblyTypeName: RangedWeaponController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnShootLeft
         m_Mode: 0
         m_Arguments:
@@ -1098,8 +1099,8 @@ MonoBehaviour:
     m_ActionName: 'Player/ShootLeft[/Mouse/leftButton]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 447818591}
-        m_TargetAssemblyTypeName: CameraController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnLockOn
         m_Mode: 0
         m_Arguments:
@@ -1114,8 +1115,8 @@ MonoBehaviour:
     m_ActionName: 'Player/LockOn[/Mouse/middleButton]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2180797343683755513}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 418160368}
+        m_TargetAssemblyTypeName: InputHandler, Assembly-CSharp
         m_MethodName: OnBoost
         m_Mode: 0
         m_Arguments:
@@ -1148,6 +1149,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &418160368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 418160365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d1fa063cd6dbc47ac3c46393fe1441, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputHandler
+  moveInput: {x: 0, y: 0}
+  lookInput: {x: 0, y: 0}
+  jumpHeld: 0
+  shootRightHeld: 0
+  shootLeftHeld: 0
+  dashPressed: 0
+  boostPressed: 0
+  lockOnPressed: 0
 --- !u!1 &435709066
 GameObject:
   m_ObjectHideFlags: 0
@@ -1364,6 +1385,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e54f8f7b1880744db41bd51560cd554, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraController
+  input: {fileID: 418160368}
   lockOnCamera: {fileID: 973680179}
   player: {fileID: 3214175917780754795}
   playerController: {fileID: 2180797343683755513}
@@ -2482,6 +2504,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07cdacf990018bd47bd02e942b905683, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangedWeaponController
+  input: {fileID: 418160368}
   currentRangedWeaponData: {fileID: 11400000, guid: 013322e071536814eba1058786e06f24, type: 2}
   rightHand: 1
 --- !u!1 &1759606531
@@ -2528,6 +2551,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07cdacf990018bd47bd02e942b905683, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangedWeaponController
+  input: {fileID: 418160368}
   currentRangedWeaponData: {fileID: 11400000, guid: b93112f6c2d19fe4cadaa1d2a0a377e4, type: 2}
   rightHand: 0
 --- !u!1 &2090656320
@@ -2613,6 +2637,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23b704600ea64e648950c5baa7c7dfa8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  input: {fileID: 418160368}
   mainCamera: {fileID: 447818591}
   cameraLockOn: {fileID: 92621035}
   jumpVelocity: 4.1
@@ -2626,7 +2651,6 @@ MonoBehaviour:
   playerBoostVelocitySmoothTime: 0.837
   rightArm: {fileID: 146952035}
   leftArm: {fileID: 1469557019}
-  moveInput: {x: 0, y: 0}
 --- !u!1 &2510228514411369139
 GameObject:
   m_ObjectHideFlags: 0

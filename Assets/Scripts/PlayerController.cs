@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 #region Enums
 public enum PlayerState
@@ -14,31 +13,34 @@ public enum PlayerState
 public class PlayerController : MonoBehaviour
 {
     #region Serialized Fields
+    [Header("Player Input")]
+    [SerializeField] private InputHandler input;
+
     [Header("Camera")]
     [SerializeField] private CameraController mainCamera;
     [SerializeField] private Transform cameraLockOn;
 
-    [Header("Player")]
+    [Header("Player Variables")]
     [Range(0,10)]
-    public float jumpVelocity;
+    [SerializeField] private float jumpVelocity;
     [Range(0,20)]
-    public float hoverMaxSpeed;
+    [SerializeField] private float hoverMaxSpeed;
     [Range(0,10)]
-    public float walkMaxSpeed;
+    [SerializeField] private float walkMaxSpeed;
     [Range(0,20)]
-    public float boostMaxSpeed;
+    [SerializeField] private float boostMaxSpeed;
     [Range(20, 100)]
-    public float dashSpeed;
+    [SerializeField] private float dashSpeed;
     [Range(-15,0)]
-    public float gravity;
+    [SerializeField] private float gravity;
 
     [Header("Player Movement Smoothing")]
     [Range(0,1)]
-    public float playerRotationSmoothTime;
+    [SerializeField] private float playerRotationSmoothTime;
     [Range(0,1)]
-    public float playerHorizontalVelocitySmoothTime;
+    [SerializeField] private float playerHorizontalVelocitySmoothTime;
     [Range(0,1)]
-    public float playerBoostVelocitySmoothTime;
+    [SerializeField] private float playerBoostVelocitySmoothTime;
 
     [Header("Arms")]
     [SerializeField] private Transform rightArm;
@@ -56,12 +58,6 @@ public class PlayerController : MonoBehaviour
     private Vector3 playerRotationSmoothVelocity = new Vector3(0,0,0);
     private Vector3 playerHorizontalVelocitySmoothVelocity = new Vector3(0,0,0);
     private float playerVerticalVelocitySmoothVelocity = 0f;
-
-    private bool jumpHeld;
-    #endregion
-
-    #region Input Fields
-    [HideInInspector] public Vector2 moveInput;
     #endregion
 
     #region Game Loop
@@ -78,52 +74,19 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    #region Input Methods
-    public void OnJump(InputAction.CallbackContext context)
-    {
-        if (context.performed)
-        {
-            jumpHeld = !jumpHeld;
-        }
-    }
-
-    public void OnMove(InputAction.CallbackContext context) 
-    {
-        moveInput = context.ReadValue<Vector2>();
-        switch (playerState)
-        {
-            case PlayerState.Idle:
-                playerState = PlayerState.Walking;
-                break;
-        }
-    }
-
-    public void OnDash(InputAction.CallbackContext context)
-    {
-        if (context.performed)
-        {
-            horizontalVelocityVector = desiredHorizontalVelocityVector.normalized * dashSpeed;
-            playerState = PlayerState.Boosting;
-        }
-    }
-
-    public void OnBoost(InputAction.CallbackContext context)
-    {
-        switch (playerState)
-        {
-            case PlayerState.Walking:
-                playerState = PlayerState.Boosting;
-                break;
-            case PlayerState.Boosting:
-                playerState = PlayerState.Walking;
-                break;
-        }
-    }
-    #endregion
-
     #region Player Methods
     void MovePlayer()
     {
+        if (input.moveInput != Vector2.zero)
+        {
+            switch (playerState)
+            {
+                case PlayerState.Idle:
+                    playerState = PlayerState.Walking;
+                    break;
+            }
+        } 
+
         desiredHorizontalVelocityVector = Vector3.zero;
 
         Vector3 forward = mainCamera.transform.forward;
@@ -141,9 +104,24 @@ public class PlayerController : MonoBehaviour
         }
         right.y = 0;
 
-        desiredHorizontalVelocityVector = (forward.normalized * moveInput.y) + (right.normalized * moveInput.x);
+        desiredHorizontalVelocityVector = (forward.normalized * input.moveInput.y) + (right.normalized * input.moveInput.x);
 
         float maxSpeed = 0; 
+
+        if (input.boostPressed)
+        {
+            switch (playerState)
+            {
+                case PlayerState.Walking:
+                    playerState = PlayerState.Boosting;
+                    break;
+                case PlayerState.Boosting:
+                    playerState = PlayerState.Walking;
+                    break;
+            }
+            input.boostPressed = false;
+        }
+            
 
         switch (playerState)
         {
@@ -164,13 +142,20 @@ public class PlayerController : MonoBehaviour
             horizontalVelocityVector = Vector3.zero;
         }
 
+        if (input.dashPressed)
+        {
+            horizontalVelocityVector = desiredHorizontalVelocityVector.normalized * dashSpeed;
+            playerState = PlayerState.Boosting;
+            input.dashPressed = false;
+        }
+
         bool grounded = characterController.isGrounded;
         if (grounded)
         {
             verticalVelocity = 0f;
         }
 
-        if (jumpHeld)
+        if (input.jumpHeld)
         {
             if (grounded)
             {

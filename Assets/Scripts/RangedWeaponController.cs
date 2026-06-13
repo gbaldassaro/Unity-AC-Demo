@@ -1,23 +1,29 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class RangedWeaponController : MonoBehaviour
 {
+    #region Serialized Fields
+    [Header("Player Input")]
+    [SerializeField] private InputHandler input;
 
+    [Header("Weapon Data")]
     [SerializeField] private RangedWeaponData currentRangedWeaponData;
 
     [SerializeField] private bool rightHand;
+    #endregion
 
+    #region Private Fields
     private int currentAmmo;
 
     private GameObject gunModel;
     private Transform projectileExitPoint;
     private GameObject projectileExitLight;
 
-    private bool shootHeld = false;
     private bool canShoot = true;
+    #endregion
 
+    #region Game Loop
     void Awake()
     {
         currentAmmo = currentRangedWeaponData.magazineSize;
@@ -29,12 +35,14 @@ public class RangedWeaponController : MonoBehaviour
 
     void Update()
     {
-        if (shootHeld)
+        if (input.shootRightHeld && rightHand || input.shootLeftHeld && !rightHand)
         {
             Shoot();
         }
     }
+    #endregion
 
+    #region Weapon Methods
     void Shoot()
     {
         if (canShoot)
@@ -60,20 +68,5 @@ public class RangedWeaponController : MonoBehaviour
         yield return new WaitForSeconds(0.05f);
         projectileExitLight.SetActive(false);
     }
-
-    public void OnShootRight(InputAction.CallbackContext context)
-    {
-        if (context.performed && rightHand)
-        {
-            shootHeld = !shootHeld;
-        }
-    }
-
-    public void OnShootLeft(InputAction.CallbackContext context)
-    {
-        if (context.performed && !rightHand)
-        {
-            shootHeld = !shootHeld;
-        }
-    }
+    #endregion
 }
