@@ -12,6 +12,7 @@ public enum PlayerState
 
 public class PlayerController : MonoBehaviour
 {
+    public Transform debugTransform;
     #region Serialized Fields
     [Header("Player Input")]
     [SerializeField] private InputHandler input;
@@ -77,6 +78,7 @@ public class PlayerController : MonoBehaviour
     #region Player Methods
     void MovePlayer()
     {
+        // transition out of idle state
         if (input.moveInput != Vector2.zero)
         {
             switch (playerState)
@@ -87,6 +89,27 @@ public class PlayerController : MonoBehaviour
             }
         } 
 
+        SetHorizontalVelocity();
+        SetVerticalVelocity();
+
+        characterController.Move((horizontalVelocityVector + Vector3.up * verticalVelocity) * Time.deltaTime);
+
+        PointPlayer();
+
+        // transition into idle state
+        if (desiredHorizontalVelocityVector.sqrMagnitude < 0.001f && 
+            horizontalVelocityVector.sqrMagnitude < 0.001f && 
+            verticalVelocity < 0.001f)
+        {
+            playerState = PlayerState.Idle;
+        }
+
+    }
+    #endregion
+
+    #region Helper Methods
+    void SetHorizontalVelocity()
+    {
         desiredHorizontalVelocityVector = Vector3.zero;
 
         Vector3 forward = mainCamera.transform.forward;
@@ -122,7 +145,6 @@ public class PlayerController : MonoBehaviour
             input.boostPressed = false;
         }
             
-
         switch (playerState)
         {
             case PlayerState.Walking:
@@ -148,7 +170,10 @@ public class PlayerController : MonoBehaviour
             playerState = PlayerState.Boosting;
             input.dashPressed = false;
         }
+    }
 
+    void SetVerticalVelocity()
+    {
         bool grounded = characterController.isGrounded;
         if (grounded)
         {
@@ -169,40 +194,69 @@ public class PlayerController : MonoBehaviour
         }
 
         verticalVelocity += gravity * Time.deltaTime;
-
-        characterController.Move((horizontalVelocityVector + Vector3.up * verticalVelocity) * Time.deltaTime);
-
-        PointPlayer();
-
-        if (desiredHorizontalVelocityVector.sqrMagnitude < 0.001f && 
-            horizontalVelocityVector.sqrMagnitude < 0.001f && 
-            verticalVelocity < 0.001f)
-        {
-            playerState = PlayerState.Idle;
-        }
-
     }
 
-    void PointPlayer(){
+    void PointPlayer()
+    {
+        Vector3 aimPoint = Vector3.zero;
+
         switch (mainCamera.cameraState)
         {
             case CameraState.FreeAim:
-                transform.forward = Vector3.SmoothDamp(transform.forward, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                // when firing, point player towards aim point
+                if (input.shootRightHeld || input.shootLeftHeld)
+                {
+                    RaycastHit hit;
+                    // if raycast hits something, aim at it
+                    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out hit, 1000f)) 
+                    {
+                        Vector3 playerPosToAimAtPos = hit.point - transform.position;
+                        playerPosToAimAtPos.y *= 0.2f;
+                        transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToAimAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                        
+                        // makes arms aim a little behind target to not have bullets akwardly converge
+                        aimPoint = hit.point + playerPosToAimAtPos.normalized * 2;
+                        rightArm.transform.LookAt(aimPoint);
+                        leftArm.transform.LookAt(aimPoint);
+                    }
+
+                    // if nothing ahead of player, aim far into the distance
+                    else
+                    {
+                        aimPoint = mainCamera.transform.position + mainCamera.transform.forward * 100f;
+                        rightArm.transform.LookAt(aimPoint);
+                        leftArm.transform.LookAt(aimPoint);
+                        aimPoint.y *= 0.2f;
+                        transform.forward = Vector3.SmoothDamp(transform.forward, aimPoint, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                    }
+                }
+                
+                // when not firing, point player towards movement
+                else
+                {
+                    transform.forward = Vector3.SmoothDamp(transform.forward, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                }
                 break;
 
             case CameraState.LockedOn:
+                // when locked on, point player at lock on target
                 Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
                 playerPosToLookAtPos.y *= 0.2f;
                 transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
-                rightArm.transform.LookAt(cameraLockOn.position);
-                leftArm.transform.LookAt(cameraLockOn.position);
+                
+                // makes arms aim a little behind target to not have bullets akwardly converge
+                aimPoint = cameraLockOn.position + playerPosToLookAtPos.normalized * 2;
+                rightArm.transform.LookAt(aimPoint);
+                leftArm.transform.LookAt(aimPoint);
                 break;
         }
-    }
 
+        debugTransform.position = aimPoint;
+    }
     #endregion
 
-    void OnDrawGizmos() {
+    void OnDrawGizmos()
+    {
         Gizmos.color = Color.red;
         Gizmos.DrawRay(transform.position, horizontalVelocityVector);
     }
