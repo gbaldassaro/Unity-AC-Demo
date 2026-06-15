@@ -37,11 +37,11 @@ public class PlayerController : MonoBehaviour
 
     [Header("Player Movement Smoothing")]
     [Range(0,1)]
-    [SerializeField] private float playerRotationSmoothTime;
+    [SerializeField] private float rotationSmoothTime;
     [Range(0,1)]
-    [SerializeField] private float playerHorizontalVelocitySmoothTime;
+    [SerializeField] private float horizontalVelocitySmoothTime;
     [Range(0,1)]
-    [SerializeField] private float playerBoostVelocitySmoothTime;
+    [SerializeField] private float hoverVelocitySmoothTime;
 
     [Header("Arms")]
     [SerializeField] private Transform rightArm;
@@ -157,7 +157,7 @@ public class PlayerController : MonoBehaviour
 
         desiredHorizontalVelocityVector *= maxSpeed;
 
-        horizontalVelocityVector = Vector3.SmoothDamp(horizontalVelocityVector, desiredHorizontalVelocityVector, ref playerHorizontalVelocitySmoothVelocity, playerHorizontalVelocitySmoothTime);
+        horizontalVelocityVector = Vector3.SmoothDamp(horizontalVelocityVector, desiredHorizontalVelocityVector, ref playerHorizontalVelocitySmoothVelocity, horizontalVelocitySmoothTime);
 
         if (horizontalVelocityVector.sqrMagnitude < 0.001f)
         {
@@ -188,7 +188,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                verticalVelocity = Mathf.SmoothDamp(verticalVelocity, hoverMaxSpeed, ref playerVerticalVelocitySmoothVelocity, playerBoostVelocitySmoothTime);
+                verticalVelocity = Mathf.SmoothDamp(verticalVelocity, hoverMaxSpeed, ref playerVerticalVelocitySmoothVelocity, hoverVelocitySmoothTime);
             }
             
         }
@@ -206,35 +206,17 @@ public class PlayerController : MonoBehaviour
                 // when firing, point player towards aim point
                 if (input.shootRightHeld || input.shootLeftHeld)
                 {
-                    RaycastHit hit;
-                    // if raycast hits something, aim at it
-                    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out hit, 1000f)) 
-                    {
-                        Vector3 playerPosToAimAtPos = hit.point - transform.position;
-                        playerPosToAimAtPos.y *= 0.2f;
-                        transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToAimAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
-                        
-                        // makes arms aim a little behind target to not have bullets akwardly converge
-                        aimPoint = hit.point + playerPosToAimAtPos.normalized * 2;
-                        rightArm.transform.LookAt(aimPoint);
-                        leftArm.transform.LookAt(aimPoint);
-                    }
-
-                    // if nothing ahead of player, aim far into the distance
-                    else
-                    {
-                        aimPoint = mainCamera.transform.position + mainCamera.transform.forward * 100f;
-                        rightArm.transform.LookAt(aimPoint);
-                        leftArm.transform.LookAt(aimPoint);
-                        aimPoint.y *= 0.2f;
-                        transform.forward = Vector3.SmoothDamp(transform.forward, aimPoint, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
-                    }
+                    aimPoint = mainCamera.transform.position + mainCamera.transform.forward * 75f;
+                    rightArm.transform.LookAt(aimPoint);
+                    leftArm.transform.LookAt(aimPoint);
+                    aimPoint.y = 0;
+                    transform.forward = Vector3.SmoothDamp(transform.forward, aimPoint, ref playerRotationSmoothVelocity, rotationSmoothTime);
                 }
                 
                 // when not firing, point player towards movement
                 else
                 {
-                    transform.forward = Vector3.SmoothDamp(transform.forward, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
+                    transform.forward = Vector3.SmoothDamp(transform.forward, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, rotationSmoothTime);
                 }
                 break;
 
@@ -242,16 +224,15 @@ public class PlayerController : MonoBehaviour
                 // when locked on, point player at lock on target
                 Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
                 playerPosToLookAtPos.y *= 0.2f;
-                transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, playerRotationSmoothTime);
-                
-                // makes arms aim a little behind target to not have bullets akwardly converge
-                aimPoint = cameraLockOn.position + playerPosToLookAtPos.normalized * 2;
-                rightArm.transform.LookAt(aimPoint);
-                leftArm.transform.LookAt(aimPoint);
+                transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, rotationSmoothTime);
+                aimPoint = cameraLockOn.position;
+
+                // offset arm aim points to not make bullets converge to one spot
+                rightArm.transform.LookAt(aimPoint + mainCamera.transform.right * 0.3f);
+                leftArm.transform.LookAt(aimPoint - mainCamera.transform.right * 0.3f);
                 break;
         }
 
-        debugTransform.position = aimPoint;
     }
     #endregion
 

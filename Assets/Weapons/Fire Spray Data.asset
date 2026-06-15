@@ -15,7 +15,7 @@ MonoBehaviour:
   weaponName: Fire Spray
   gunModel: {fileID: 4134994354837483751, guid: 5cd0aee6da2902540a5cd18b3f814a39, type: 3}
   projectilePrefab: {fileID: 3866012601695674764, guid: 4904a36bd8d415b4b9cdf2c46d7cea3f, type: 3}
-  projectileSpeed: 44.96
+  projectileSpeed: 67.5
   timeBetweenProjectiles: 0.05
   damagePerProjectile: 5.03
   magazineSize: 100

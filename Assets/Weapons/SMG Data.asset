@@ -15,7 +15,7 @@ MonoBehaviour:
   weaponName: SMG
   gunModel: {fileID: 4134994354837483751, guid: 51c0f8d99a29cf14fa9383c00e34fbf7, type: 3}
   projectilePrefab: {fileID: 3866012601695674764, guid: 20c323dcdc0138c499a030c194542fce, type: 3}
-  projectileSpeed: 44.96
+  projectileSpeed: 98.6
   timeBetweenProjectiles: 0.05
   damagePerProjectile: 5.03
   magazineSize: 100

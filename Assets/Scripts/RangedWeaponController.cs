@@ -49,8 +49,9 @@ public class RangedWeaponController : MonoBehaviour
         {
             projectileExitLight.SetActive(true);
             StartCoroutine(lightWaitTimer());
+            
             Projectile projectile = Instantiate(currentRangedWeaponData.projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation);
-            projectile.GetComponent<Rigidbody>().linearVelocity = projectile.transform.forward * currentRangedWeaponData.projectileSpeed;
+            projectile.speed = currentRangedWeaponData.projectileSpeed;
             projectile.damage = currentRangedWeaponData.damagePerProjectile;
             canShoot = false;
             StartCoroutine(projectileWaitTimer());
