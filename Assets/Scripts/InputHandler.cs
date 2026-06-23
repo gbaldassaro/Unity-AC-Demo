@@ -8,11 +8,18 @@ public class InputHandler : MonoBehaviour
 
     [HideInInspector] public bool jumpHeld;
     [HideInInspector] public bool shootRightHeld;
+    [HideInInspector] public double shootRightHeldStartTime;
     [HideInInspector] public bool shootLeftHeld;
+    [HideInInspector] public double shootLeftHeldStartTime;
+    [HideInInspector] public bool rightPressed;
+    [HideInInspector] public bool leftPressed;
+    [HideInInspector] public bool shiftControlHeld;
 
     [HideInInspector] public bool dashPressed;
     [HideInInspector] public bool boostPressed;
     [HideInInspector] public bool lockOnPressed;
+    [HideInInspector] public bool healPressed;
+    [HideInInspector] public bool interactPressed;
 
     void Start()
     {
@@ -36,25 +43,51 @@ public class InputHandler : MonoBehaviour
     #region Held Inputs
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.started)
         {
-            jumpHeld = !jumpHeld;
+            jumpHeld = true;
+        }
+        if (context.canceled)
+        {
+            jumpHeld = false;
         }
     }
 
     public void OnShootRight(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.started)
         {
-            shootRightHeld = !shootRightHeld;
+            shootRightHeld = true;
+            shootRightHeldStartTime = context.startTime;
+        }
+        if (context.canceled)
+        {
+            shootRightHeld = false;
         }
     }
 
     public void OnShootLeft(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.started)
         {
-            shootLeftHeld = !shootLeftHeld;
+            shootLeftHeld = true;
+            shootLeftHeldStartTime = context.startTime;
+        }
+        if (context.canceled)
+        {
+            shootLeftHeld = false;
+        }
+    }
+
+    public void OnShiftControl(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            shiftControlHeld = true;
+        }
+        if (context.canceled)
+        {
+            shiftControlHeld = false;
         }
     }
     #endregion
@@ -81,6 +114,38 @@ public class InputHandler : MonoBehaviour
         if (context.performed){
             lockOnPressed = true;
         }    
+    }
+
+    public void OnHeal(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            healPressed = true;
+        }
+    }
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            interactPressed = true;
+        }
+    }
+
+    public void OnRightPress(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            rightPressed = true;
+        }
+    }
+
+    public void OnLeftPress(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            leftPressed = true;
+        }
     }
     #endregion
 }

@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class RangedWeaponController : MonoBehaviour
 {
-    #region Serialized Fields
     [Header("Player Input")]
     [SerializeField] private InputHandler input;
 
@@ -11,60 +10,75 @@ public class RangedWeaponController : MonoBehaviour
     [SerializeField] private RangedWeaponData currentRangedWeaponData;
 
     [SerializeField] private bool rightHand;
-    #endregion
 
-    #region Private Fields
-    private int currentAmmo;
+    [HideInInspector] public int currentAmmo;
 
     private GameObject gunModel;
     private Transform projectileExitPoint;
     private GameObject projectileExitLight;
 
     private bool canShoot = true;
-    #endregion
+    private bool reloading = false;
+
 
     #region Game Loop
-    void Awake()
+    private void Awake()
     {
-        currentAmmo = currentRangedWeaponData.magazineSize;
+        currentAmmo = currentRangedWeaponData.maxAmmo;
         gunModel = Instantiate(currentRangedWeaponData.gunModel, transform.position, transform.rotation);
         gunModel.transform.parent = gameObject.transform;
         projectileExitPoint = gunModel.transform.Find("Projectile Exit Point");
         projectileExitLight = projectileExitPoint.transform.Find("Projectile Exit Light").gameObject;
     }
 
-    void Update()
-    {
-        if (input.shootRightHeld && rightHand || input.shootLeftHeld && !rightHand)
+    private void Update()
+    {   
+        if (!input.shiftControlHeld && canShoot && !reloading && currentAmmo != 0 && 
+        ((input.shootRightHeld && rightHand && Time.realtimeSinceStartup - input.shootRightHeldStartTime > currentRangedWeaponData.firstShotDelay) || 
+        (input.shootLeftHeld && !rightHand && Time.realtimeSinceStartup - input.shootLeftHeldStartTime > currentRangedWeaponData.firstShotDelay)))
         {
             Shoot();
+        }
+
+        if (input.shiftControlHeld && !reloading && 
+        ((input.shootRightHeld && rightHand) || (input.shootLeftHeld && !rightHand)))
+        {
+            StartCoroutine(Reload());
         }
     }
     #endregion
 
     #region Weapon Methods
-    void Shoot()
+    private void Shoot()
     {
-        if (canShoot)
-        {
-            projectileExitLight.SetActive(true);
-            StartCoroutine(lightWaitTimer());
-            
-            Projectile projectile = Instantiate(currentRangedWeaponData.projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation);
-            projectile.speed = currentRangedWeaponData.projectileSpeed;
-            projectile.damage = currentRangedWeaponData.damagePerProjectile;
-            canShoot = false;
-            StartCoroutine(projectileWaitTimer());
-        }
+        projectileExitLight.SetActive(true);
+        StartCoroutine(LightWaitTimer());
+        
+        Projectile projectile = Instantiate(currentRangedWeaponData.projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation);
+        projectile.speed = currentRangedWeaponData.projectileSpeed;
+        projectile.damage = currentRangedWeaponData.damagePerProjectile;
+        currentAmmo -= 1;
+        canShoot = false;
+        StartCoroutine(ProjectileWaitTimer());
     }
+    
+    private IEnumerator Reload()
+    {
+        reloading = true;
+        yield return new WaitForSeconds(currentRangedWeaponData.reloadTime);
+        currentAmmo = currentRangedWeaponData.maxAmmo;
+        reloading = false;
+    }
+    #endregion
 
-    IEnumerator projectileWaitTimer()
+    #region Timers
+    private IEnumerator ProjectileWaitTimer()
     { 
         yield return new WaitForSeconds(currentRangedWeaponData.timeBetweenProjectiles);
         canShoot = true;
     }
 
-    IEnumerator lightWaitTimer()
+    private IEnumerator LightWaitTimer()
     { 
         yield return new WaitForSeconds(0.05f);
         projectileExitLight.SetActive(false);

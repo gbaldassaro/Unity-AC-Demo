@@ -2,24 +2,23 @@ using System;
 using Unity.Cinemachine;
 using UnityEngine;
 
-#region Enums
 public enum CameraState
 {
+    LockOnSearch,
     LockedOn,
     FreeAim
 }
-#endregion
 
 public class CameraController : MonoBehaviour
 {
 
-    #region Serialized Fields
     [Header("Player Input")]
     [SerializeField] private InputHandler input;
 
     [Header("Lock On")]
     [SerializeField] private GameObject lockOnCamera;
-    [SerializeField] private Transform lockOnLookAt;
+    public Transform lockOnLookAt;
+    [SerializeField] private float lockOnRange;
 
     [Header("Player")]
     [SerializeField] private Transform player;
@@ -33,13 +32,9 @@ public class CameraController : MonoBehaviour
     public float lockOnOffsetMagnitude;
     [Range(0,1)]
     public float offsetSmoothTime;
-    #endregion
 
-    #region Public Fields
     public CameraState cameraState;
-    #endregion
 
-    #region Private Fields
     private Transform currentLockOn;
     private float lookTime;
 
@@ -47,10 +42,9 @@ public class CameraController : MonoBehaviour
     private float targetOffset;
 
     private float offsetSmoothVelocity = 0f;
-    #endregion
 
     #region Game Loop
-    void Awake()
+    private void Awake()
     {
         cameraState = CameraState.FreeAim;
 
@@ -58,30 +52,47 @@ public class CameraController : MonoBehaviour
         targetOffset = lockOnOffsetMagnitude;
     }
 
-    void Update()
+    private void Update()
     {
         if (input.lockOnPressed)
         {
-            LockOn();
+            switch (cameraState)
+            {
+                case CameraState.LockedOn:
+                    cameraState = CameraState.FreeAim;
+                    lockOnCamera.SetActive(false);
+                    break;   
+
+                case CameraState.LockOnSearch:
+                    cameraState = CameraState.FreeAim;
+                    break;   
+
+                case CameraState.FreeAim:
+                    cameraState = CameraState.LockOnSearch;
+                    break;
+            }
             input.lockOnPressed = false;
         }
-    }
 
-    void LateUpdate()
-    {
         switch (cameraState)
         {
+            case CameraState.LockOnSearch:
+                FindLockOn();
+                break;   
+            
             case CameraState.LockedOn:
-            BreakLock();
-            MoveLookAt();
-            break;   
+                TryBreakLock();
+                break;
         }
+
+        MoveLookAt();
     }
     #endregion
 
     #region Camera Methods
-    void BreakLock()
+    private void TryBreakLock()
     {
+        // unlock if player uses any look input for long enough
         if (input.lookInput.sqrMagnitude > 0.001f)
         {
             lookTime += Time.deltaTime;
@@ -90,16 +101,38 @@ public class CameraController : MonoBehaviour
 
         if (lookTime > lockOnExitTime)
         {
-            LockOn();
+            cameraState = CameraState.FreeAim;
+            lockOnCamera.SetActive(false);
+            lookTime = 0;
+        }
+
+        // switch target/search for new if current target dies
+        if (currentLockOn == null)
+        {
+            cameraState = CameraState.LockOnSearch;
+            lockOnCamera.SetActive(false);
+            // immediately looks for new target to prevent camera snapping
+            FindLockOn();
             lookTime = 0;
         }
     }
 
-    void MoveLookAt()
+    private void MoveLookAt()
     {
-        if (currentLockOn != null){
-            lockOnLookAt.position = currentLockOn.position;
+        switch (cameraState)
+        {
+            case CameraState.LockedOn:
+                if (currentLockOn != null){
+                    lockOnLookAt.position = Vector3.MoveTowards(lockOnLookAt.position, currentLockOn.position, Time.deltaTime * 100);
+                }
+                break;
+
+            case CameraState.FreeAim:
+            case CameraState.LockOnSearch:
+                lockOnLookAt.position = transform.position + transform.forward * 10;
+                break;
         }
+
 
         if (input.moveInput.x > 0)
         {
@@ -112,35 +145,27 @@ public class CameraController : MonoBehaviour
         cinemachineFollow.FollowOffset.x = Mathf.SmoothDamp(cinemachineFollow.FollowOffset.x, targetOffset, ref offsetSmoothVelocity, offsetSmoothTime);
     }
 
-    void LockOn()
+    private void FindLockOn()
     {
-        switch (cameraState)
+        Collider[] hitColliders = Physics.OverlapSphere(player.transform.position, lockOnRange);
+        float minAngle = Mathf.Infinity;
+        Collider currentCandidate = null;
+        foreach (var hitCollider in hitColliders)
         {
-            case CameraState.FreeAim:
-                Collider[] hitColliders = Physics.OverlapSphere(player.transform.position, 100);
-                float minDist = Mathf.Infinity;
-                var currentCandidate = hitColliders[0];
-                foreach (var hitCollider in hitColliders)
-                {
-                    if (hitCollider.CompareTag("Lock On Point") && (hitCollider.transform.position - player.position).sqrMagnitude < minDist)
-                    {
-                        //must add angle check
-                        minDist = (hitCollider.transform.position - player.position).sqrMagnitude;
-                        currentCandidate = hitCollider;
-                    }
-
-                    currentLockOn = currentCandidate.GetComponent<Transform>();
-                    lockOnCamera.SetActive(true);
-                    cameraState = CameraState.LockedOn;
-                }
-                break;
-
-            case CameraState.LockedOn:
-                lockOnCamera.SetActive(false);
-                cameraState = CameraState.FreeAim;
-                break;
+            if (hitCollider.CompareTag("Lock On Point") && 
+            Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position)) < minAngle)
+            {
+                minAngle = Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position));
+                currentCandidate = hitCollider;
+            }
         }
-    
+
+        if (currentCandidate != null)
+        {
+            cameraState = CameraState.LockedOn;
+            currentLockOn = currentCandidate.transform;
+            lockOnCamera.SetActive(true);
+        }
     }
     #endregion
 }

@@ -11,9 +11,10 @@ public class RangedWeaponData : ScriptableObject
     public float projectileSpeed;
 
     public float timeBetweenProjectiles;
+    public float firstShotDelay;
     public float damagePerProjectile;
 
-    public int magazineSize;
+    public int maxAmmo;
     public float reloadTime;
 
     public float projectileSpread;

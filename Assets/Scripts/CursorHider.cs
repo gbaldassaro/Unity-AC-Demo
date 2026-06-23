@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class CursorHider : MonoBehaviour
 {
-    void Start()
+    private void Start()
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;

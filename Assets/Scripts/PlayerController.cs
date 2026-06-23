@@ -1,19 +1,17 @@
 using System;
 using UnityEngine;
 
-#region Enums
 public enum PlayerState
 {
     Idle,
     Walking,
     Boosting
 }
-#endregion
 
 public class PlayerController : MonoBehaviour
 {
     public Transform debugTransform;
-    #region Serialized Fields
+
     [Header("Player Input")]
     [SerializeField] private InputHandler input;
 
@@ -21,7 +19,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private CameraController mainCamera;
     [SerializeField] private Transform cameraLockOn;
 
-    [Header("Player Variables")]
+    [Header("Player Movement Variables")]
     [Range(0,10)]
     [SerializeField] private float jumpVelocity;
     [Range(0,20)]
@@ -46,10 +44,14 @@ public class PlayerController : MonoBehaviour
     [Header("Arms")]
     [SerializeField] private Transform rightArm;
     [SerializeField] private Transform leftArm;
-    #endregion
+
+    [Header("Healing")]
+    [SerializeField] private float healAmount;
+    [SerializeField] private int maxHeals;
+    [HideInInspector] public int healsLeft;
     
-    #region Private Fields
     private CharacterController characterController;
+    private Health health;
     private PlayerState playerState;
 
     private Vector3 desiredHorizontalVelocityVector = Vector3.forward;
@@ -59,24 +61,30 @@ public class PlayerController : MonoBehaviour
     private Vector3 playerRotationSmoothVelocity = new Vector3(0,0,0);
     private Vector3 playerHorizontalVelocitySmoothVelocity = new Vector3(0,0,0);
     private float playerVerticalVelocitySmoothVelocity = 0f;
-    #endregion
 
     #region Game Loop
-    void Start()
+    private void Start()
     {
         characterController = GetComponent<CharacterController>();
+        health = GetComponent<Health>();
+        healsLeft = maxHeals;
         playerState = PlayerState.Idle;
     }
 
 
-    void Update()
+    private void Update()
     {
         MovePlayer();
+
+        if (input.healPressed && healsLeft != 0)
+        {
+            HealPlayer();
+        }
     }
     #endregion
 
     #region Player Methods
-    void MovePlayer()
+    private void MovePlayer()
     {
         // transition out of idle state
         if (input.moveInput != Vector2.zero)
@@ -97,8 +105,8 @@ public class PlayerController : MonoBehaviour
         PointPlayer();
 
         // transition into idle state
-        if (desiredHorizontalVelocityVector.sqrMagnitude < 0.001f && 
-            horizontalVelocityVector.sqrMagnitude < 0.001f && 
+        if (desiredHorizontalVelocityVector.sqrMagnitude < 0.01f && 
+            horizontalVelocityVector.sqrMagnitude < 0.01f && 
             verticalVelocity < 0.001f)
         {
             playerState = PlayerState.Idle;
@@ -108,7 +116,7 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Helper Methods
-    void SetHorizontalVelocity()
+    private void SetHorizontalVelocity()
     {
         desiredHorizontalVelocityVector = Vector3.zero;
 
@@ -119,6 +127,7 @@ public class PlayerController : MonoBehaviour
         switch (mainCamera.cameraState)
         {
             case CameraState.FreeAim:
+            case CameraState.LockOnSearch:
                 right = mainCamera.transform.right;
                 break;
             case CameraState.LockedOn:
@@ -172,7 +181,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void SetVerticalVelocity()
+    private void SetVerticalVelocity()
     {
         bool grounded = characterController.isGrounded;
         if (grounded)
@@ -196,27 +205,41 @@ public class PlayerController : MonoBehaviour
         verticalVelocity += gravity * Time.deltaTime;
     }
 
-    void PointPlayer()
+    private void PointPlayer()
     {
-        Vector3 aimPoint = Vector3.zero;
+        Vector3 aimPoint;
 
         switch (mainCamera.cameraState)
         {
             case CameraState.FreeAim:
+            case CameraState.LockOnSearch:
                 // when firing, point player towards aim point
                 if (input.shootRightHeld || input.shootLeftHeld)
                 {
-                    aimPoint = mainCamera.transform.position + mainCamera.transform.forward * 75f;
-                    rightArm.transform.LookAt(aimPoint);
-                    leftArm.transform.LookAt(aimPoint);
-                    aimPoint.y = 0;
-                    transform.forward = Vector3.SmoothDamp(transform.forward, aimPoint, ref playerRotationSmoothVelocity, rotationSmoothTime);
+                    RaycastHit hit;
+                    if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out hit, 100))
+                    {
+                        aimPoint = hit.point;
+                    }
+                    else
+                    {
+                        aimPoint = mainCamera.transform.position + mainCamera.transform.forward * 50f;
+                    }
+
+                    transform.LookAt(new Vector3(aimPoint.x, transform.position.y, aimPoint.z));
+                    // offset arm aim points to not make bullets converge to one spot
+                    rightArm.transform.LookAt(aimPoint + mainCamera.transform.right * 0.1f);
+                    leftArm.transform.LookAt(aimPoint - mainCamera.transform.right * 0.1f);
                 }
                 
                 // when not firing, point player towards movement
                 else
                 {
-                    transform.forward = Vector3.SmoothDamp(transform.forward, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, rotationSmoothTime);
+                    Vector3 target = transform.forward;
+                    target = Vector3.SmoothDamp(target, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, rotationSmoothTime);
+                    transform.forward = new Vector3(target.x, 0, target.z);
+                    rightArm.transform.localRotation = Quaternion.identity;
+                    leftArm.transform.localRotation = Quaternion.identity;
                 }
                 break;
 
@@ -228,17 +251,17 @@ public class PlayerController : MonoBehaviour
                 aimPoint = cameraLockOn.position;
 
                 // offset arm aim points to not make bullets converge to one spot
-                rightArm.transform.LookAt(aimPoint + mainCamera.transform.right * 0.3f);
-                leftArm.transform.LookAt(aimPoint - mainCamera.transform.right * 0.3f);
+                rightArm.transform.LookAt(aimPoint + mainCamera.transform.right * 0.1f);
+                leftArm.transform.LookAt(aimPoint - mainCamera.transform.right * 0.1f);
                 break;
         }
+    }
 
+    private void HealPlayer()
+    {
+        health.Heal(healAmount);
+        healsLeft -= 1;
+        input.healPressed = false;
     }
     #endregion
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, horizontalVelocityVector);
-    }
 }
