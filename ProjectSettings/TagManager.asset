@@ -4,9 +4,9 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Lock On Point
   - Right Hand
   - Left Hand
+  - Enemy
   layers:
   - Default
   - TransparentFX

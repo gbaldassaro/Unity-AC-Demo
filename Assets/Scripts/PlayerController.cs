@@ -10,7 +10,7 @@ public enum PlayerState
 
 public class PlayerController : MonoBehaviour
 {
-    public Transform debugTransform;
+    private CharacterController characterController;
 
     [Header("Player Input")]
     [SerializeField] private InputHandler input;
@@ -20,26 +20,25 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform cameraLockOn;
 
     [Header("Player Movement Variables")]
-    [Range(0,10)]
-    [SerializeField] private float jumpVelocity;
-    [Range(0,20)]
-    [SerializeField] private float hoverMaxSpeed;
-    [Range(0,10)]
-    [SerializeField] private float walkMaxSpeed;
-    [Range(0,20)]
-    [SerializeField] private float boostMaxSpeed;
-    [Range(20, 100)]
-    [SerializeField] private float dashSpeed;
-    [Range(-15,0)]
-    [SerializeField] private float gravity;
+    [Range(0,10)] [SerializeField] private float jumpVelocity;
+    [Range(0,20)] [SerializeField] private float hoverMaxSpeed;
+    [Range(0,10)] [SerializeField] private float walkMaxSpeed;
+    [Range(0,20)] public float boostMaxSpeed;
+    public float maxSpeed;
+    [Range(20, 100)] [SerializeField] private float dashSpeed;
+    [Range(-15,0)] [SerializeField] private float gravity;
+
+    private Vector3 desiredHorizontalVelocityVector = Vector3.forward;
+    public Vector3 horizontalVelocityVector;
+    private float verticalVelocity;
 
     [Header("Player Movement Smoothing")]
-    [Range(0,1)]
-    [SerializeField] private float rotationSmoothTime;
-    [Range(0,1)]
-    [SerializeField] private float horizontalVelocitySmoothTime;
-    [Range(0,1)]
-    [SerializeField] private float hoverVelocitySmoothTime;
+    [Range(0,1)] [SerializeField] private float rotationSmoothTime;
+    [Range(0,1)] [SerializeField] private float horizontalVelocitySmoothTime;
+    [Range(0,1)] [SerializeField] private float hoverVelocitySmoothTime;
+    private Vector3 playerRotationSmoothVelocity = new Vector3(0,0,0);
+    private Vector3 playerHorizontalVelocitySmoothVelocity = new Vector3(0,0,0);
+    private float playerVerticalVelocitySmoothVelocity = 0f;
 
     [Header("Arms")]
     [SerializeField] private Transform rightArm;
@@ -49,18 +48,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float healAmount;
     [SerializeField] private int maxHeals;
     [HideInInspector] public int healsLeft;
-    
-    private CharacterController characterController;
     private Health health;
     private PlayerState playerState;
-
-    private Vector3 desiredHorizontalVelocityVector = Vector3.forward;
-    private Vector3 horizontalVelocityVector;
-    private float verticalVelocity;
-
-    private Vector3 playerRotationSmoothVelocity = new Vector3(0,0,0);
-    private Vector3 playerHorizontalVelocitySmoothVelocity = new Vector3(0,0,0);
-    private float playerVerticalVelocitySmoothVelocity = 0f;
 
     #region Game Loop
     private void Start()
@@ -138,7 +127,7 @@ public class PlayerController : MonoBehaviour
 
         desiredHorizontalVelocityVector = (forward.normalized * input.moveInput.y) + (right.normalized * input.moveInput.x);
 
-        float maxSpeed = 0; 
+        maxSpeed = 0; 
 
         if (input.boostPressed)
         {
