@@ -24,12 +24,12 @@ public class Projectile : MonoBehaviour
             // destroy bullet and play hit effect
             Destroy(gameObject);
             hitParticle = Instantiate(hitEffect, hit.point, Quaternion.LookRotation(hit.normal));
-            // sets parent of individual particle so that when enemy moves/is destroyed, particles do too
-            hitParticle.transform.SetParent(hit.transform);
             
             // damage object only if it has health
             if (hit.collider.TryGetComponent<Health>(out Health health))
             {
+                // sets enemy as parent of individual particle so that when enemy moves/is destroyed, particles do too
+                hitParticle.transform.SetParent(hit.transform);
                 health.Damage(damage);
             }
         }

@@ -20,6 +20,13 @@ public class RangedWeaponController : MonoBehaviour
     private bool canShoot = true;
     private bool reloading = false;
 
+    [Header("Enemy Tracking")]
+    [SerializeField] private CameraController cameraController;
+    [SerializeField] private Transform rightAimAtPoint;
+    [SerializeField] private Transform leftAimAtPoint;
+    private Enemy currentEnemy;
+    private Vector3 currentEnemyVelocity;
+
 
     #region Game Loop
     private void Awake()
@@ -46,15 +53,51 @@ public class RangedWeaponController : MonoBehaviour
             StartCoroutine(Reload());
         }
     }
+
+    private void FixedUpdate()
+    {
+        TrackEnemy();
+    }
     #endregion
 
     #region Weapon Methods
+    private void TrackEnemy()
+    {
+        if (cameraController.currentEnemy != null)
+        {
+            currentEnemy = cameraController.currentEnemy;
+            currentEnemyVelocity = currentEnemy.velocitySendToPlayer;
+            float distanceToEnemy = (currentEnemy.transform.position - projectileExitPoint.position).magnitude;
+            float angle = Vector3.Angle(currentEnemy.transform.position - projectileExitPoint.position, currentEnemyVelocity);
+            float a = Mathf.Pow(currentRangedWeaponData.projectileSpeed, 2) - Mathf.Pow(currentEnemyVelocity.magnitude, 2);
+            float b = 2 * distanceToEnemy * currentEnemyVelocity.magnitude * Mathf.Cos(Mathf.Deg2Rad * angle);
+            float c = -Mathf.Pow(distanceToEnemy, 2);
+            float t;
+            if (a != 0)
+            {
+                t = (-b + Mathf.Sqrt(b * b - (4 * a * c))) / (2 * a);
+            }
+            else t = 0;
+
+            if (rightHand)
+            {
+                rightAimAtPoint.position = currentEnemy.transform.position + (currentEnemyVelocity * t);
+            }
+            else
+            {
+                leftAimAtPoint.position = currentEnemy.transform.position + (currentEnemyVelocity * t);
+            }
+        }
+    }
+    
     private void Shoot()
     {
         projectileExitLight.SetActive(true);
         StartCoroutine(LightWaitTimer());
         
-        Projectile projectile = Instantiate(currentRangedWeaponData.projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation);
+        Vector2 spread = Random.insideUnitCircle * currentRangedWeaponData.projectileSpread;
+        Quaternion spreadAngle = Quaternion.Euler(spread.x, spread.y, 0);
+        Projectile projectile = Instantiate(currentRangedWeaponData.projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation * spreadAngle);
         projectile.speed = currentRangedWeaponData.projectileSpeed;
         projectile.damage = currentRangedWeaponData.damagePerProjectile;
         currentAmmo -= 1;

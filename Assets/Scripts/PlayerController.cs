@@ -17,14 +17,16 @@ public class PlayerController : MonoBehaviour
 
     [Header("Camera")]
     [SerializeField] private CameraController mainCamera;
-    [SerializeField] private Transform cameraLockOn;
+    [SerializeField] private Transform lockOnPoint;
+    [SerializeField] private Transform rightAimAtPoint;
+    [SerializeField] private Transform leftAimAtPoint;
 
     [Header("Player Movement Variables")]
     [Range(0,10)] [SerializeField] private float jumpVelocity;
     [Range(0,20)] [SerializeField] private float hoverMaxSpeed;
     [Range(0,10)] [SerializeField] private float walkMaxSpeed;
     [Range(0,20)] public float boostMaxSpeed;
-    public float maxSpeed;
+    [HideInInspector] public float maxSpeed;
     [Range(20, 100)] [SerializeField] private float dashSpeed;
     [Range(-15,0)] [SerializeField] private float gravity;
 
@@ -129,19 +131,11 @@ public class PlayerController : MonoBehaviour
 
         maxSpeed = 0; 
 
-        if (input.boostPressed)
+        if (input.boostPressed && playerState == PlayerState.Walking)
         {
-            switch (playerState)
-            {
-                case PlayerState.Walking:
-                    playerState = PlayerState.Boosting;
-                    break;
-                case PlayerState.Boosting:
-                    playerState = PlayerState.Walking;
-                    break;
-            }
-            input.boostPressed = false;
+            playerState = PlayerState.Boosting;
         }
+        input.boostPressed = false;
             
         switch (playerState)
         {
@@ -233,15 +227,14 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case CameraState.LockedOn:
-                // when locked on, point player at lock on target
-                Vector3 playerPosToLookAtPos = cameraLockOn.position - transform.position;
+                // when locked on, point player at aim at target
+                Vector3 playerPosToLookAtPos = lockOnPoint.position - transform.position;
                 playerPosToLookAtPos.y *= 0.2f;
                 transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, rotationSmoothTime);
-                aimPoint = cameraLockOn.position;
-
+                
                 // offset arm aim points to not make bullets converge to one spot
-                rightArm.transform.LookAt(aimPoint + mainCamera.transform.right * 0.1f);
-                leftArm.transform.LookAt(aimPoint - mainCamera.transform.right * 0.1f);
+                rightArm.transform.LookAt(rightAimAtPoint.position + mainCamera.transform.right * 0.05f);
+                leftArm.transform.LookAt(leftAimAtPoint.position - mainCamera.transform.right * 0.05f);
                 break;
         }
     }

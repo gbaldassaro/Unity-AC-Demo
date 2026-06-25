@@ -28,9 +28,10 @@ public class CameraController : MonoBehaviour
     private CinemachineCamera lockOnCinemachine;
     private CinemachineFollow cinemachineFollow;
     [SerializeField] private Transform lockOnRotationControl;
-    public Transform lockOnLookAt;
+    [SerializeField] private Transform lockOnPoint;
     [SerializeField] private float lockOnRange;
     private Transform currentLockOn;
+    [HideInInspector] public Enemy currentEnemy;
 
     [Header("Player")]
     [SerializeField] private Transform player;
@@ -47,7 +48,6 @@ public class CameraController : MonoBehaviour
     public float dutchLimit;
     private float dutchSmoothVelocity;
     public float dutchSmoothTime;
-
 
     #region Game Loop
     private void Awake()
@@ -94,7 +94,7 @@ public class CameraController : MonoBehaviour
                 break;
         }
 
-        MoveLookAt();
+        MoveAim();
         TiltAndSlideCamera();
     }
     #endregion
@@ -130,18 +130,18 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    private void MoveLookAt()
+    private void MoveAim()
     {
         switch (cameraState)
         {
             case CameraState.LockedOn:
-                lockOnLookAt.position = Vector3.MoveTowards(lockOnLookAt.position, currentLockOn.position, Time.deltaTime * 75);
-                lockOnRotationControl.LookAt(lockOnLookAt);
+                lockOnPoint.position = Vector3.MoveTowards(lockOnPoint.position, currentLockOn.position, Time.deltaTime * 75);
+                lockOnRotationControl.LookAt(lockOnPoint);
                 break;
 
             case CameraState.FreeAim:
             case CameraState.LockOnSearch:
-                lockOnLookAt.position = transform.position + transform.forward * 10;
+                lockOnPoint.position = transform.position + transform.forward * 10;
                 break;
         }
     }
@@ -180,7 +180,7 @@ public class CameraController : MonoBehaviour
         Collider[] hitColliders = Physics.OverlapSphere(player.transform.position, lockOnRange);
         float minAngle = Mathf.Infinity;
         Vector3 viewportPos;
-        Transform currentCandidate = null;
+        Collider currentCandidate = null;
         foreach (var hitCollider in hitColliders)
         {
             // gets collider's position within screen space
@@ -201,7 +201,7 @@ public class CameraController : MonoBehaviour
                     if (hit.transform == hitCollider.transform)
                     {
                         minAngle = Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position));
-                        currentCandidate = hitCollider.transform.Find("Lock On Point");
+                        currentCandidate = hitCollider;
                     }
                 }
             }
@@ -210,7 +210,9 @@ public class CameraController : MonoBehaviour
         if (currentCandidate != null)
         {
             cameraState = CameraState.LockedOn;
-            currentLockOn = currentCandidate;
+            // lock on is separate from enemy to allow custom lock on placement 
+            currentLockOn = currentCandidate.transform.Find("Lock On Point");
+            currentEnemy = currentCandidate.GetComponent<Enemy>();
             // separate lock on tracking target rotation from player to prevent camera whipping when player turns around to lock on
             lockOnRotationControl.LookAt(currentLockOn);
             lockOnCamera.SetActive(true);
