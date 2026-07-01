@@ -54,7 +54,7 @@ public class RangedWeaponController : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    private void LateUpdate()
     {
         TrackEnemy();
     }
@@ -72,12 +72,19 @@ public class RangedWeaponController : MonoBehaviour
             float a = Mathf.Pow(currentRangedWeaponData.projectileSpeed, 2) - Mathf.Pow(currentEnemyVelocity.magnitude, 2);
             float b = 2 * distanceToEnemy * currentEnemyVelocity.magnitude * Mathf.Cos(Mathf.Deg2Rad * angle);
             float c = -Mathf.Pow(distanceToEnemy, 2);
-            float t;
-            if (a != 0)
+
+            float t = 0;
+            float discriminant = (b * b) - (4 * a * c);
+
+            if (Mathf.Abs(a) > 0.001f && discriminant >= 0)
             {
-                t = (-b + Mathf.Sqrt(b * b - (4 * a * c))) / (2 * a);
+                t = (-b + Mathf.Sqrt(discriminant)) / (2 * a);
+                
+                if (t < 0)
+                {
+                    t = 0;
+                }
             }
-            else t = 0;
 
             if (rightHand)
             {

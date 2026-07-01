@@ -658,6 +658,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2050316919}
     m_Modifications:
+    - target: {fileID: 835397433713963763, guid: dd18e1f7f18926d4dba11be5f89d4eab, type: 3}
+      propertyPath: speed
+      value: 1.57
+      objectReference: {fileID: 0}
+    - target: {fileID: 835397433713963763, guid: dd18e1f7f18926d4dba11be5f89d4eab, type: 3}
+      propertyPath: magnitude
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 6264475625416685929, guid: dd18e1f7f18926d4dba11be5f89d4eab, type: 3}
       propertyPath: m_LocalPosition.x
       value: 14.25
@@ -705,35 +713,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7221169472488529317, guid: dd18e1f7f18926d4dba11be5f89d4eab, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 157502468}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dd18e1f7f18926d4dba11be5f89d4eab, type: 3}
 --- !u!4 &157502466 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6264475625416685929, guid: dd18e1f7f18926d4dba11be5f89d4eab, type: 3}
   m_PrefabInstance: {fileID: 157502465}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &157502467 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7221169472488529317, guid: dd18e1f7f18926d4dba11be5f89d4eab, type: 3}
-  m_PrefabInstance: {fileID: 157502465}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &157502468
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 157502467}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f19e58ceab878449984f98d988455b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Oscillator
-  speed: 2
-  magnitude: 5
 --- !u!1 &160307826
 GameObject:
   m_ObjectHideFlags: 0

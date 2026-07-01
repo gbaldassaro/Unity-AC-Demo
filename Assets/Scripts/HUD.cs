@@ -37,7 +37,7 @@ public class HUD : MonoBehaviour
         cameraController = mainCamera.GetComponent<CameraController>();
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         healthText.text = "Health: " + playerHealth.currentHealth.ToString();
         healsLeftText.text = "Heals: " + playerController.healsLeft.ToString();

@@ -239,3 +239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a207025e314ec3f4c91402f6a2f76112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
+  velocitySendToPlayer: {x: 0, y: 0, z: 0}
+  lastPosition: {x: 0, y: 0, z: 0}
+  speed: 0
+  magnitude: 0
