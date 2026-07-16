@@ -121,14 +121,6 @@ public class RangedWeaponController : MonoBehaviour
         canShoot = false;
         StartCoroutine(ProjectileWaitTimer());
     }
-    
-    // private IEnumerator Reload()
-    // {
-    //     reloading = true;
-    //     yield return new WaitForSeconds(reloadTime);
-    //     currentAmmo = currentRangedWeaponData.maxAmmo;
-    //     reloading = false;
-    // }
 
     private IEnumerator Reload()
     {

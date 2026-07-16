@@ -147,7 +147,6 @@ public class PlayerController : MonoBehaviour
         {
             playerState = PlayerState.Boosting;
         }
-        input.boostPressed = false;
             
         switch (playerState)
         {
@@ -176,7 +175,6 @@ public class PlayerController : MonoBehaviour
 
             horizontalVelocityVector = desiredHorizontalVelocityVector.normalized * dashSpeed;
             playerState = PlayerState.Boosting;
-            input.dashPressed = false;
         }
     }
 
@@ -262,7 +260,6 @@ public class PlayerController : MonoBehaviour
     {
         health.Heal(healAmount);
         healsLeft -= 1;
-        input.healPressed = false;
     }
 
     private void TryFillEnergy()

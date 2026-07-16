@@ -61,7 +61,7 @@ public class CameraController : MonoBehaviour
         targetOffset = lockOnOffsetMagnitude;
     }
 
-    private void LateUpdate()
+    private void Update()
     {
         if (input.lockOnPressed)
         {
@@ -80,9 +80,11 @@ public class CameraController : MonoBehaviour
                     cameraState = CameraState.LockOnSearch;
                     break;
             }
-            input.lockOnPressed = false;
         }
+    }
 
+    private void LateUpdate()
+    {
         switch (cameraState)
         {
             case CameraState.LockOnSearch:

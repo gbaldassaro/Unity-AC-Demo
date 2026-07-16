@@ -28,6 +28,18 @@ public class InputHandler : MonoBehaviour
         shootLeftHeld = false;
     }
 
+    void LateUpdate()
+    {
+        // makes all press inputs false at end of frame
+        rightPressed = false;
+        leftPressed = false;
+        dashPressed = false;
+        boostPressed = false;
+        lockOnPressed = false;
+        healPressed = false;
+        interactPressed = false;
+    }
+
     #region Vector Inputs
     public void OnMove(InputAction.CallbackContext context) 
     {
