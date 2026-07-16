@@ -10,10 +10,21 @@ public class HUD : MonoBehaviour
     [SerializeField] private RangedWeaponController rightHandWeapon;
     [SerializeField] private RangedWeaponController leftHandWeapon;
 
-    [SerializeField] private TextMeshProUGUI healthText;
-    [SerializeField] private TextMeshProUGUI healsLeftText; 
-    [SerializeField] private TextMeshProUGUI rightAmmoText; 
-    [SerializeField] private TextMeshProUGUI leftAmmoText; 
+    [SerializeField] private TextMeshProUGUI healthNumber;
+    [SerializeField] private RectTransform healthBar;
+    private float healthBarWidth;
+    [SerializeField] private TextMeshProUGUI healsLeftNumber; 
+
+    [SerializeField] private TextMeshProUGUI rightAmmoNumber;
+    [SerializeField] private RectTransform rightAmmoBar;
+    private float rightAmmoBarWidth;
+    [SerializeField] private RectTransform rightReloadBar;
+    private float rightReloadBarWidth;
+    [SerializeField] private TextMeshProUGUI leftAmmoNumber;
+    [SerializeField] private RectTransform leftAmmoBar;
+    private float leftAmmoBarWidth;
+    [SerializeField] private RectTransform leftReloadBar;
+    private float leftReloadBarWidth;
 
     [SerializeField] private Camera mainCamera;
     private CameraController cameraController;
@@ -32,20 +43,43 @@ public class HUD : MonoBehaviour
     [SerializeField] private Transform leftAimAtPoint;
 
     [SerializeField] private RectTransform energyBar;
+    private float energyBarWidth;
 
 
     private void Start()
     {
         cameraController = mainCamera.GetComponent<CameraController>();
+        energyBarWidth = energyBar.rect.width;
+        healthBarWidth = healthBar.rect.width;
+        rightAmmoBarWidth = rightAmmoBar.rect.width;
+        leftAmmoBarWidth = leftAmmoBar.rect.width;
+        rightReloadBarWidth = rightReloadBar.rect.width;
+        leftReloadBarWidth = leftReloadBar.rect.width;
     }
 
     private void LateUpdate()
     {
-        healthText.text = "Health: " + playerHealth.currentHealth.ToString();
-        healsLeftText.text = "Heals: " + playerController.healsLeft.ToString();
-        rightAmmoText.text = "Right Weapon Ammo: " + rightHandWeapon.currentAmmo.ToString();
-        leftAmmoText.text = "Left Weapon Ammo: " + leftHandWeapon.currentAmmo.ToString();
+        // health info
+        healthNumber.text = playerHealth.currentHealth.ToString() + "/" + playerHealth.maxHealth.ToString();
+        healthBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, healthBarWidth * playerHealth.currentHealth / playerHealth.maxHealth);
 
+        // healing info
+        healsLeftNumber.text = playerController.healsLeft.ToString();
+
+        // ammo info
+        rightAmmoNumber.text = rightHandWeapon.currentAmmo.ToString() + "/" + rightHandWeapon.maxAmmo.ToString();
+        rightAmmoBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rightAmmoBarWidth * rightHandWeapon.currentAmmo / rightHandWeapon.maxAmmo);
+        rightReloadBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rightReloadBarWidth * rightHandWeapon.elapsedReloadTime / rightHandWeapon.reloadTime);
+
+        leftAmmoNumber.text = leftHandWeapon.currentAmmo.ToString() + "/" + leftHandWeapon.maxAmmo.ToString();
+        leftAmmoBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, leftAmmoBarWidth * leftHandWeapon.currentAmmo / leftHandWeapon.maxAmmo);
+        leftReloadBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, leftReloadBarWidth * leftHandWeapon.elapsedReloadTime / leftHandWeapon.reloadTime);
+
+
+        // energy info
+        energyBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, energyBarWidth * playerController.currentEnergy / playerController.maxEnergy);
+
+        // reticles
         switch (cameraController.cameraState)
         {
             case CameraState.FreeAim:
@@ -74,8 +108,6 @@ public class HUD : MonoBehaviour
         lockOnReticle.anchoredPosition = lockOnPointScreenSpace;
         rightAimAtReticle.anchoredPosition = rightAimAtPointScreenSpace;
         leftAimAtReticle.anchoredPosition = leftAimAtPointScreenSpace;
-
-        energyBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 700.0f * playerController.currentEnergy / playerController.maxEnergy);
 
         }
 }

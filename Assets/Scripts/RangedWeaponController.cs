@@ -12,6 +12,7 @@ public class RangedWeaponController : MonoBehaviour
     [SerializeField] private bool rightHand;
 
     [HideInInspector] public int currentAmmo;
+    public int maxAmmo;
 
     private GameObject gunModel;
     private Transform projectileExitPoint;
@@ -19,6 +20,8 @@ public class RangedWeaponController : MonoBehaviour
 
     private bool canShoot = true;
     private bool reloading = false;
+    public float elapsedReloadTime;
+    public float reloadTime;
 
     [Header("Enemy Tracking")]
     [SerializeField] private CameraController cameraController;
@@ -31,7 +34,9 @@ public class RangedWeaponController : MonoBehaviour
     #region Game Loop
     private void Awake()
     {
+        maxAmmo = currentRangedWeaponData.maxAmmo;
         currentAmmo = currentRangedWeaponData.maxAmmo;
+        reloadTime = currentRangedWeaponData.reloadTime;
         gunModel = Instantiate(currentRangedWeaponData.gunModel, transform.position, transform.rotation);
         gunModel.transform.parent = gameObject.transform;
         projectileExitPoint = gunModel.transform.Find("Projectile Exit Point");
@@ -49,6 +54,12 @@ public class RangedWeaponController : MonoBehaviour
 
         if (input.shiftControlHeld && !reloading && 
         ((input.shootRightHeld && rightHand) || (input.shootLeftHeld && !rightHand)))
+        {
+            StartCoroutine(Reload());
+        }
+
+        // auto reload when empty
+        if (currentAmmo == 0 && !reloading)
         {
             StartCoroutine(Reload());
         }
@@ -111,10 +122,24 @@ public class RangedWeaponController : MonoBehaviour
         StartCoroutine(ProjectileWaitTimer());
     }
     
+    // private IEnumerator Reload()
+    // {
+    //     reloading = true;
+    //     yield return new WaitForSeconds(reloadTime);
+    //     currentAmmo = currentRangedWeaponData.maxAmmo;
+    //     reloading = false;
+    // }
+
     private IEnumerator Reload()
     {
         reloading = true;
-        yield return new WaitForSeconds(currentRangedWeaponData.reloadTime);
+        elapsedReloadTime = 0;
+        while (elapsedReloadTime < reloadTime)
+        {
+            elapsedReloadTime += Time.deltaTime;
+            yield return null;
+        }
+        elapsedReloadTime = 0;
         currentAmmo = currentRangedWeaponData.maxAmmo;
         reloading = false;
     }
