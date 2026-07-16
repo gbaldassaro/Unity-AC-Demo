@@ -79,7 +79,6 @@ public class RangedWeaponController : MonoBehaviour
             if (Mathf.Abs(a) > 0.001f && discriminant >= 0)
             {
                 t = (-b + Mathf.Sqrt(discriminant)) / (2 * a);
-                
                 if (t < 0)
                 {
                     t = 0;

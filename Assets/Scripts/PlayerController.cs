@@ -53,12 +53,22 @@ public class PlayerController : MonoBehaviour
     private Health health;
     private PlayerState playerState;
 
+    [Header("Energy")]
+    [Range(0,200)] [SerializeField] public float maxEnergy;
+    [Range(0,20)] [SerializeField] private float hoverEnergyPerSec;
+    [Range(0,20)] [SerializeField] private float dashEnergy;
+    public float currentEnergy;
+    private float lastEnergyTime;
+    [Range(0,5)] [SerializeField] private float energyRecoveryWaitTime;
+    [Range(0,20)] [SerializeField] private float energyRecoveryPerSec;
+
     #region Game Loop
     private void Start()
     {
         characterController = GetComponent<CharacterController>();
         health = GetComponent<Health>();
         healsLeft = maxHeals;
+        currentEnergy = maxEnergy;
         playerState = PlayerState.Idle;
     }
 
@@ -71,6 +81,8 @@ public class PlayerController : MonoBehaviour
         {
             HealPlayer();
         }
+
+        TryFillEnergy();
     }
     #endregion
 
@@ -156,8 +168,12 @@ public class PlayerController : MonoBehaviour
             horizontalVelocityVector = Vector3.zero;
         }
 
-        if (input.dashPressed)
+        if (input.dashPressed && currentEnergy - dashEnergy >= 0 &&
+            horizontalVelocityVector.sqrMagnitude > 0.001f)
         {
+            currentEnergy -= dashEnergy;
+            lastEnergyTime = Time.time;
+
             horizontalVelocityVector = desiredHorizontalVelocityVector.normalized * dashSpeed;
             playerState = PlayerState.Boosting;
             input.dashPressed = false;
@@ -178,8 +194,11 @@ public class PlayerController : MonoBehaviour
             {
                 verticalVelocity = Mathf.Sqrt(jumpVelocity * -2f * gravity);
             }
-            else
+            else if (currentEnergy - hoverEnergyPerSec * Time.deltaTime >= 0)
             {
+                currentEnergy -= hoverEnergyPerSec * Time.deltaTime;
+                lastEnergyTime = Time.time;
+
                 verticalVelocity = Mathf.SmoothDamp(verticalVelocity, hoverMaxSpeed, ref playerVerticalVelocitySmoothVelocity, hoverVelocitySmoothTime);
             }
             
@@ -244,6 +263,24 @@ public class PlayerController : MonoBehaviour
         health.Heal(healAmount);
         healsLeft -= 1;
         input.healPressed = false;
+    }
+
+    private void TryFillEnergy()
+    {
+        if (Time.time - lastEnergyTime > energyRecoveryWaitTime)
+        {
+            float recovery = energyRecoveryPerSec;
+            if (characterController.isGrounded)
+            {
+                recovery *= 2.0f;
+            }
+            currentEnergy += recovery * Time.deltaTime;
+        }
+
+        if (currentEnergy > maxEnergy)
+        {
+            currentEnergy = maxEnergy;
+        }
     }
     #endregion
 }

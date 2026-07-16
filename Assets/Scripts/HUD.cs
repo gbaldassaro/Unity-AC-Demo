@@ -31,6 +31,8 @@ public class HUD : MonoBehaviour
     [SerializeField] private Transform rightAimAtPoint;
     [SerializeField] private Transform leftAimAtPoint;
 
+    [SerializeField] private RectTransform energyBar;
+
 
     private void Start()
     {
@@ -72,6 +74,8 @@ public class HUD : MonoBehaviour
         lockOnReticle.anchoredPosition = lockOnPointScreenSpace;
         rightAimAtReticle.anchoredPosition = rightAimAtPointScreenSpace;
         leftAimAtReticle.anchoredPosition = leftAimAtPointScreenSpace;
+
+        energyBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 700.0f * playerController.currentEnergy / playerController.maxEnergy);
 
         }
 }

@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   damage: 0
   speed: 0
-  hitEffect: {fileID: 6579774577508644540, guid: b7c3b78ab69f2b8468a518b25b2d5201, type: 3}
+  hitEffect: {fileID: 8192774652401082958, guid: cbbf85a7adec293448769352156cea41, type: 3}
 --- !u!33 &3356817078213798270
 MeshFilter:
   m_ObjectHideFlags: 0

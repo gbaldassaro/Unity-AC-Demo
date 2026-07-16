@@ -18,7 +18,7 @@ MonoBehaviour:
   projectileSpeed: 98.6
   timeBetweenProjectiles: 0.05
   firstShotDelay: 0.15
-  damagePerProjectile: 0
+  damagePerProjectile: 5
   maxAmmo: 16237
   reloadTime: 2.5
   projectileSpread: 0
