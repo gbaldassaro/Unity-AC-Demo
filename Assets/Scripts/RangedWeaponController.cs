@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class RangedWeaponController : MonoBehaviour
 {
+    [Header("Player")]
+    [SerializeField] private PlayerController playerController;
     [Header("Player Input")]
     [SerializeField] private InputHandler input;
 
@@ -45,9 +47,9 @@ public class RangedWeaponController : MonoBehaviour
 
     private void Update()
     {   
-        if (!input.shiftControlHeld && canShoot && !reloading && currentAmmo != 0 && 
-        ((input.shootRightHeld && rightHand && Time.realtimeSinceStartup - input.shootRightHeldStartTime > currentRangedWeaponData.firstShotDelay) || 
-        (input.shootLeftHeld && !rightHand && Time.realtimeSinceStartup - input.shootLeftHeldStartTime > currentRangedWeaponData.firstShotDelay)))
+        if (!playerController.dashing && !input.shiftControlHeld && canShoot && !reloading && currentAmmo != 0 && 
+        ((input.shootRightHeld && rightHand && Time.time - input.shootRightHeldStartTime > currentRangedWeaponData.firstShotDelay) || 
+        (input.shootLeftHeld && !rightHand && Time.time - input.shootLeftHeldStartTime > currentRangedWeaponData.firstShotDelay)))
         {
             Shoot();
         }

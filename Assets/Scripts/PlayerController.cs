@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public enum PlayerState
@@ -28,6 +29,8 @@ public class PlayerController : MonoBehaviour
     [Range(0,20)] public float boostMaxSpeed;
     [HideInInspector] public float maxSpeed;
     [Range(20, 100)] [SerializeField] private float dashSpeed;
+    [Range(0, 1)] [SerializeField] private float dashDelay;
+    [HideInInspector] public bool dashing;
     [Range(-15,0)] [SerializeField] private float gravity;
 
     private Vector3 desiredHorizontalVelocityVector = Vector3.forward;
@@ -168,14 +171,35 @@ public class PlayerController : MonoBehaviour
         }
 
         if (input.dashPressed && currentEnergy - dashEnergy >= 0 &&
-            horizontalVelocityVector.sqrMagnitude > 0.001f)
+            horizontalVelocityVector.sqrMagnitude > 0.001f && !dashing)
         {
+            StartCoroutine(DashTimer());
+
             currentEnergy -= dashEnergy;
             lastEnergyTime = Time.time;
 
             horizontalVelocityVector = desiredHorizontalVelocityVector.normalized * dashSpeed;
             playerState = PlayerState.Boosting;
         }
+    }
+
+    private IEnumerator DashTimer()
+    {
+        dashing = true;
+        // slows player rotation while dashing
+        float temp = rotationSmoothTime;
+        rotationSmoothTime *= 2;
+
+        float elapsedDashCooldownTime = 0;
+        while (elapsedDashCooldownTime < dashDelay)
+        {
+            elapsedDashCooldownTime += Time.deltaTime;
+            yield return null;
+        }
+        elapsedDashCooldownTime = 0;
+
+        dashing = false;
+        rotationSmoothTime = temp;
     }
 
     private void SetVerticalVelocity()

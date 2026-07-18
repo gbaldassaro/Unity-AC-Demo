@@ -4823,6 +4823,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07cdacf990018bd47bd02e942b905683, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangedWeaponController
+  playerController: {fileID: 2180797343683755513}
   input: {fileID: 418160368}
   currentRangedWeaponData: {fileID: 11400000, guid: b93112f6c2d19fe4cadaa1d2a0a377e4, type: 2}
   rightHand: 1
@@ -4877,6 +4878,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07cdacf990018bd47bd02e942b905683, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangedWeaponController
+  playerController: {fileID: 2180797343683755513}
   input: {fileID: 418160368}
   currentRangedWeaponData: {fileID: 11400000, guid: b93112f6c2d19fe4cadaa1d2a0a377e4, type: 2}
   rightHand: 0
@@ -5615,17 +5617,19 @@ MonoBehaviour:
   jumpVelocity: 4.1
   hoverMaxSpeed: 17.6
   walkMaxSpeed: 3
-  boostMaxSpeed: 10.73
+  boostMaxSpeed: 12
   maxSpeed: 0
   dashSpeed: 28.8
+  dashDelay: 0.465
+  dashing: 0
   gravity: -9.81
   horizontalVelocityVector: {x: 0, y: 0, z: 0}
   rotationSmoothTime: 0.254
   horizontalVelocitySmoothTime: 0.364
-  hoverVelocitySmoothTime: 0.645
+  hoverVelocitySmoothTime: 0.632
   rightArm: {fileID: 146952035}
   leftArm: {fileID: 1469557019}
-  healAmount: 220
+  healAmount: 330
   maxHeals: 3
   healsLeft: 0
   maxEnergy: 100

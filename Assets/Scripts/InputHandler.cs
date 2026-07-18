@@ -70,7 +70,7 @@ public class InputHandler : MonoBehaviour
         if (context.started)
         {
             shootRightHeld = true;
-            shootRightHeldStartTime = context.startTime;
+            shootRightHeldStartTime = Time.time;
         }
         if (context.canceled)
         {
@@ -83,7 +83,7 @@ public class InputHandler : MonoBehaviour
         if (context.started)
         {
             shootLeftHeld = true;
-            shootLeftHeldStartTime = context.startTime;
+            shootLeftHeldStartTime = Time.time;
         }
         if (context.canceled)
         {
