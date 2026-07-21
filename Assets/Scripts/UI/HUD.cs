@@ -60,7 +60,7 @@ public class HUD : MonoBehaviour
     private void LateUpdate()
     {
         // health info
-        healthNumber.text = playerHealth.currentHealth.ToString() + "/" + playerHealth.maxHealth.ToString();
+        healthNumber.text = ((int)playerHealth.currentHealth).ToString() + "/" + playerHealth.maxHealth.ToString();
         healthBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, healthBarWidth * playerHealth.currentHealth / playerHealth.maxHealth);
 
         // healing info

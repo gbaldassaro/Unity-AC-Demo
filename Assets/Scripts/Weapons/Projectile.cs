@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
+    public Transform owner; // to prevent self damage
     public float damage;
     public float speed;
 
@@ -25,8 +26,8 @@ public class Projectile : MonoBehaviour
             Destroy(gameObject);
             hitParticle = Instantiate(hitEffect, hit.point, Quaternion.LookRotation(hit.normal));
             
-            // damage object only if it has health
-            if (hit.collider.TryGetComponent<Health>(out Health health))
+            // damage object only if it has health and if the projectile was not spawned from the object
+            if (hit.collider.TryGetComponent<Health>(out Health health) && hit.collider.transform != owner)
             {
                 // sets enemy as parent of individual particle so that when enemy moves/is destroyed, particles do too
                 hitParticle.transform.SetParent(hit.transform);

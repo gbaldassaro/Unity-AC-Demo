@@ -4,6 +4,7 @@ using UnityEngine;
 public class RangedWeaponController : MonoBehaviour
 {
     [Header("Player")]
+    [SerializeField] private Transform player;
     [SerializeField] private PlayerController playerController;
     [Header("Player Input")]
     [SerializeField] private InputHandler input;
@@ -117,6 +118,7 @@ public class RangedWeaponController : MonoBehaviour
         Vector2 spread = Random.insideUnitCircle * currentRangedWeaponData.projectileSpread;
         Quaternion spreadAngle = Quaternion.Euler(spread.x, spread.y, 0);
         Projectile projectile = Instantiate(currentRangedWeaponData.projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation * spreadAngle);
+        projectile.owner = player;
         projectile.speed = currentRangedWeaponData.projectileSpeed;
         projectile.damage = currentRangedWeaponData.damagePerProjectile;
         currentAmmo -= 1;

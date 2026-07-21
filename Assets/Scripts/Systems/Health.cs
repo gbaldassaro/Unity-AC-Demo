@@ -8,6 +8,8 @@ public class Health : MonoBehaviour
 
     public float currentHealth;
 
+    [SerializeField] private bool player;
+
     private void Start()
     {
         currentHealth = maxHealth;
@@ -19,6 +21,7 @@ public class Health : MonoBehaviour
         if (currentHealth < 0)
         {
             Kill();
+            currentHealth = 0;
         }
     }
 
@@ -33,7 +36,15 @@ public class Health : MonoBehaviour
 
     private void Kill()
     {
-        Destroy(gameObject);
+        if (player)
+        {
+            gameObject.SetActive(false);
+            MenuManager.singleton.ShowDeathMenu();
+        }
+        if (!player)
+        {
+            Destroy(gameObject);
+        }
         Instantiate(deathEffect, transform.position, Quaternion.LookRotation(transform.up));
     }
 }
