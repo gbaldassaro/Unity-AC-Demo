@@ -67,11 +67,11 @@ public class DeathMenu : MonoBehaviour
     public void Retry()
     {
         Hide();
-        Debug.Log("Retry!");
+        SceneController.singleton.ReloadScene();
     }
 
     public void MainMenu()
     {
-        Debug.Log("Main Menu!");
+
     }
 }

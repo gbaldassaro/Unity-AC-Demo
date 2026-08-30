@@ -65,6 +65,8 @@ public class PlayerController : MonoBehaviour
     [Range(0,5)] [SerializeField] private float energyRecoveryWaitTime;
     [Range(0,20)] [SerializeField] private float energyRecoveryPerSec;
 
+    private bool startupFinished = false;
+
     #region Game Loop
     private void Start()
     {
@@ -73,11 +75,25 @@ public class PlayerController : MonoBehaviour
         healsLeft = maxHeals;
         currentEnergy = maxEnergy;
         playerState = PlayerState.Idle;
+
+        StartCoroutine(Startup());
+
     }
 
-
-    private void Update()
+    private IEnumerator Startup()
     {
+        startupFinished = false;
+        yield return new WaitForSecondsRealtime(3.0f);
+        startupFinished = true;
+    }
+
+    void Update()
+    {
+        if (!startupFinished)
+        {
+            return;
+        } 
+
         MovePlayer();
 
         if (input.healPressed && healsLeft != 0)

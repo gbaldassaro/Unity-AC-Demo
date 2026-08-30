@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -38,16 +39,21 @@ public class CameraController : MonoBehaviour
     [SerializeField] private PlayerController playerController;
 
     [Header("Camera Variables")]
-    [Tooltip("How long, in seconds, the player must use the look input to break lock.")]
-    [Range(0,1)] public float lockOnExitTime;
-    [Range(0,5)] public float lockOnOffsetMagnitude;
-    [Range(0,1)] public float offsetSmoothTime;
+    [SerializeField] private float lockOnExitThreshold;
+    [Range(0,5)] [SerializeField] private float lockOnOffsetMagnitude;
+    [Range(0,1)] [SerializeField] private float offsetSmoothTime;
     private float targetOffset;
     private float offsetSmoothVelocity = 0f;
     private float dutch;
-    public float dutchLimit;
+    [SerializeField] private float dutchLimit;
     private float dutchSmoothVelocity;
-    public float dutchSmoothTime;
+    [SerializeField] private float dutchSmoothTime;
+
+    private Transform lastLockOn;
+
+    private bool startupFinished = false;
+
+    private bool justLocked;
 
     #region Game Loop
     private void Awake()
@@ -61,8 +67,18 @@ public class CameraController : MonoBehaviour
         targetOffset = lockOnOffsetMagnitude;
     }
 
+    private void Start()
+    {
+        StartCoroutine(Startup());
+    }
+
     private void Update()
     {
+        if (!startupFinished)
+        {
+            return;
+        }
+
         if (input.lockOnPressed)
         {
             switch (cameraState)
@@ -70,6 +86,7 @@ public class CameraController : MonoBehaviour
                 case CameraState.LockedOn:
                     cameraState = CameraState.FreeAim;
                     lockOnCamera.SetActive(false);
+                    lastLockOn = null;
                     break;   
 
                 case CameraState.LockOnSearch:
@@ -85,51 +102,62 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-        switch (cameraState)
+        if (!startupFinished)
         {
-            case CameraState.LockOnSearch:
-                FindLockOn();
-                break;   
-            
-            case CameraState.LockedOn:
-                UpdateLock();
-                break;
+            return;
         }
 
+        UpdateLock();
         MoveAim();
         TiltAndSlideCamera();
     }
     #endregion
 
     #region Camera Methods
+    private IEnumerator Startup()
+    {
+        orbitCamera.SetActive(false);
+        lockOnCamera.SetActive(false);
+        yield return new WaitForSecondsRealtime(1.0f);
+        orbitCamera.SetActive(true);
+        startupFinished = true;
+    }
+
     private void UpdateLock()
     {
-        if (cameraState == CameraState.LockedOn)
+        switch (cameraState)
         {
-            // unlock if player uses any look input for long enough
-            if (input.lookInput.sqrMagnitude > 0.001f)
-            {
-                lookTime += Time.deltaTime;
-            }        
-            else lookTime = 0;
+            case (CameraState.LockedOn):
+                // relock if player uses look input beyond threshold
+                if (input.lookInput.sqrMagnitude > 1000.0f && !justLocked)
+                {
+                    SwitchLockOn();
+                }
+                // allows player to switch locks only after having no camera input on current lock
+                if (input.lookInput.sqrMagnitude < 0.001f)
+                {
+                    justLocked = false;
+                }
+            
+                // switch target/search for new if current target dies
+                if (currentLockOn == null)
+                {
+                    cameraState = CameraState.LockOnSearch;
+                    lockOnCamera.SetActive(false);
+                    // immediately looks for new target to prevent camera snapping
+                    FindLockOn();
+                }
 
-            if (lookTime > lockOnExitTime)
-            {
-                cameraState = CameraState.FreeAim;
-                lockOnCamera.SetActive(false);
-                lookTime = 0;
-            }
+                break;
+
+            case (CameraState.LockOnSearch):
+                if (input.lookInput.sqrMagnitude < 0.001f)
+                {
+                    FindLockOn();
+                }
+                break;
         }
         
-        // switch target/search for new if current target dies
-        if (currentLockOn == null)
-        {
-            cameraState = CameraState.LockOnSearch;
-            lockOnCamera.SetActive(false);
-            // immediately looks for new target to prevent camera snapping
-            FindLockOn();
-            lookTime = 0;
-        }
     }
 
     private void MoveAim()
@@ -137,7 +165,7 @@ public class CameraController : MonoBehaviour
         switch (cameraState)
         {
             case CameraState.LockedOn:
-                lockOnPoint.position = Vector3.MoveTowards(lockOnPoint.position, currentLockOn.position, Time.deltaTime * 75);
+                lockOnPoint.position = Vector3.MoveTowards(lockOnPoint.position, currentLockOn.position, Time.deltaTime * 200);
                 lockOnRotationControl.LookAt(lockOnPoint);
                 break;
 
@@ -190,6 +218,8 @@ public class CameraController : MonoBehaviour
 
             // if collider is enemy, continue
             if (hitCollider.CompareTag("Enemy") &&
+            // if collider is not currently locked on enemy, continue
+            hitCollider.transform.Find("Lock On Point") != lastLockOn && 
             // if enemy is closer to center than current best choice, continue
             Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position)) < minAngle &&
             // if enemy is within screen (with small padding), continue
@@ -214,10 +244,79 @@ public class CameraController : MonoBehaviour
             cameraState = CameraState.LockedOn;
             // lock on is separate from enemy to allow custom lock on placement 
             currentLockOn = currentCandidate.transform.Find("Lock On Point");
+            lastLockOn = currentLockOn;
             currentEnemy = currentCandidate.GetComponent<Enemy>();
             // separate lock on tracking target rotation from player to prevent camera whipping when player turns around to lock on
             lockOnRotationControl.LookAt(currentLockOn);
             lockOnCamera.SetActive(true);
+
+            justLocked = true;
+        }
+        else
+        {
+            currentLockOn = null;
+            lastLockOn = null;
+        }
+    }
+
+    private void SwitchLockOn()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(player.transform.position, lockOnRange);
+        float minAngle = Mathf.Infinity;
+        // minimum angle between input direction and enemy direction from center of screen
+        float minInputAngle = Mathf.Infinity;
+        Vector3 viewportPos;
+        Collider currentCandidate = null;
+        foreach (var hitCollider in hitColliders)
+        {
+            // gets collider's position within screen space
+            viewportPos = mainCamera.WorldToViewportPoint(hitCollider.transform.position);
+
+            // if collider is enemy, continue
+            if (hitCollider.CompareTag("Enemy") &&
+            // if collider is not currently locked on enemy, continue
+            hitCollider.transform.Find("Lock On Point") != lastLockOn && 
+            // if collider is in direction of camera input, continue
+            Vector2.Dot(input.lookInput, new Vector2(viewportPos.x - 0.5f, viewportPos.y - 0.5f)) > 0 &&
+            // if enemy direction is closer to look input, continue
+            Math.Abs(Vector2.Angle(input.lookInput, new Vector2(viewportPos.x - 0.5f, viewportPos.y - 0.5f))) < minInputAngle &&
+            // if enemy is closer to center than current best choice, continue
+            Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position)) < minAngle &&
+            // if enemy is within screen (with small padding), continue
+            viewportPos.x > 0.05f && viewportPos.x < 0.95f && viewportPos.y > 0.05f && viewportPos.y < 0.95f && viewportPos.z > 0)
+            {
+                Vector3 directionToEnemy = hitCollider.transform.position - mainCamera.transform.position;
+                float distanceToEnemy = directionToEnemy.magnitude;
+                // if enemy is not blocked from view by obstacle, enemy is current best lock on choice
+                if (Physics.Raycast(mainCamera.transform.position, directionToEnemy, out RaycastHit hit, distanceToEnemy))
+                {
+                    if (hit.transform == hitCollider.transform)
+                    {
+                        minInputAngle = Math.Abs(Vector2.Angle(input.lookInput, new Vector2(viewportPos.x - 0.5f, viewportPos.y - 0.5f)));
+                        minAngle = Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position));
+                        currentCandidate = hitCollider;
+                    }
+                }
+            }
+        }
+
+        if (currentCandidate != null)
+        {
+            cameraState = CameraState.LockedOn;
+            // lock on is separate from enemy to allow custom lock on placement 
+            currentLockOn = currentCandidate.transform.Find("Lock On Point");
+            lastLockOn = currentLockOn;
+            currentEnemy = currentCandidate.GetComponent<Enemy>();
+            // separate lock on tracking target rotation from player to prevent camera whipping when player turns around to lock on
+            lockOnRotationControl.LookAt(currentLockOn);
+            lockOnCamera.SetActive(true);
+
+            justLocked = true;
+        }
+        else
+        {
+            currentLockOn = null;
+            lastLockOn = null;
         }
     }
     #endregion

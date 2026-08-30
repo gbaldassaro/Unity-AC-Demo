@@ -15,7 +15,7 @@ public enum FightState
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private Transform player;
+    private Transform player;
 
     [HideInInspector] public Vector3 velocitySendToPlayer;
     [HideInInspector] public Vector3 lastPosition;
@@ -32,17 +32,34 @@ public class Enemy : MonoBehaviour
     private Vector3 startPos;
 
     private bool canShoot = true;
+    private bool startupFinished = false;
 
-    void Awake()
+    void Start()
     {
         lastPosition = transform.position;
 
         startPos = transform.position;
 
         player = GameObject.FindGameObjectWithTag("Player").transform;
+
+        StartCoroutine(Startup());
+
     }
+
+    private IEnumerator Startup()
+    {
+        startupFinished = false;
+        yield return new WaitForSecondsRealtime(3.0f);
+        startupFinished = true;
+    }
+
     void Update()
     {
+        if (!startupFinished)
+        {
+            return;
+        }
+        
         projectileExitPoint.transform.LookAt(player);
         if (canShoot && player.gameObject.activeInHierarchy)
         {

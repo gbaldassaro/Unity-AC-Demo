@@ -47,4 +47,9 @@ public class Health : MonoBehaviour
         }
         Instantiate(deathEffect, transform.position, Quaternion.LookRotation(transform.up));
     }
+
+    public void Reset()
+    {
+        currentHealth = maxHealth;
+    }
 }

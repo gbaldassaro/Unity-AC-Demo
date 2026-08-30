@@ -81,7 +81,7 @@ TrailRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Time: 0.01
+  m_Time: 0.05
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
@@ -189,6 +189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 504686a91cebb38449e21ba6cb883d5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  owner: {fileID: 0}
   damage: 0
   speed: 0
   hitEffect: {fileID: 6579774577508644540, guid: b7c3b78ab69f2b8468a518b25b2d5201, type: 3}
