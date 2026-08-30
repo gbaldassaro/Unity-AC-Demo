@@ -153,7 +153,7 @@ public class PlayerController : MonoBehaviour
                 right = mainCamera.transform.right;
                 break;
             case CameraState.LockedOn:
-                right = transform.right;
+                right = this.transform.right;
                 break;
         }
         right.y = 0;
@@ -266,7 +266,7 @@ public class PlayerController : MonoBehaviour
                         aimPoint = mainCamera.transform.position + mainCamera.transform.forward * 50f;
                     }
 
-                    transform.LookAt(new Vector3(aimPoint.x, transform.position.y, aimPoint.z));
+                    this.transform.LookAt(new Vector3(aimPoint.x, this.transform.position.y, aimPoint.z));
                     // offset arm aim points to not make bullets converge to one spot
                     rightArm.transform.LookAt(aimPoint + mainCamera.transform.right * 0.1f);
                     leftArm.transform.LookAt(aimPoint - mainCamera.transform.right * 0.1f);
@@ -275,9 +275,9 @@ public class PlayerController : MonoBehaviour
                 // when not firing, point player towards movement
                 else
                 {
-                    Vector3 target = transform.forward;
+                    Vector3 target = this.transform.forward;
                     target = Vector3.SmoothDamp(target, desiredHorizontalVelocityVector, ref playerRotationSmoothVelocity, rotationSmoothTime);
-                    transform.forward = new Vector3(target.x, 0, target.z);
+                    this.transform.forward = new Vector3(target.x, 0, target.z);
                     rightArm.transform.localRotation = Quaternion.identity;
                     leftArm.transform.localRotation = Quaternion.identity;
                 }
@@ -285,9 +285,9 @@ public class PlayerController : MonoBehaviour
 
             case CameraState.LockedOn:
                 // when locked on, point player at aim at target
-                Vector3 playerPosToLookAtPos = lockOnPoint.position - transform.position;
+                Vector3 playerPosToLookAtPos = lockOnPoint.position - this.transform.position;
                 playerPosToLookAtPos.y *= 0.2f;
-                transform.forward = Vector3.SmoothDamp(transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, rotationSmoothTime);
+                this.transform.forward = Vector3.SmoothDamp(this.transform.forward, playerPosToLookAtPos, ref playerRotationSmoothVelocity, rotationSmoothTime);
                 
                 // offset arm aim points to not make bullets converge to one spot
                 rightArm.transform.LookAt(rightAimAtPoint.position + mainCamera.transform.right * 0.05f);

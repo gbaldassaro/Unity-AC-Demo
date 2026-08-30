@@ -171,7 +171,7 @@ public class CameraController : MonoBehaviour
 
             case CameraState.FreeAim:
             case CameraState.LockOnSearch:
-                lockOnPoint.position = transform.position + transform.forward * 10;
+                lockOnPoint.position = this.transform.position + this.transform.forward * 10;
                 break;
         }
     }
@@ -184,7 +184,7 @@ public class CameraController : MonoBehaviour
             if (playerController.horizontalVelocityVector.magnitude > playerController.boostMaxSpeed * 0.75)
             {
                 // if moving to the right relative to the camera, move camera to left shoulder
-                if (Vector3.Dot(playerController.horizontalVelocityVector, transform.right) > 1)
+                if (Vector3.Dot(playerController.horizontalVelocityVector, this.transform.right) > 1)
                 {
                     targetOffset = -1 * lockOnOffsetMagnitude;
                 }
@@ -198,7 +198,7 @@ public class CameraController : MonoBehaviour
         }
 
         // tilts camera on left and right movement
-        dutch = -0.02f * playerController.horizontalVelocityVector.magnitude * Vector3.Dot(playerController.horizontalVelocityVector, transform.right);
+        dutch = -0.02f * playerController.horizontalVelocityVector.magnitude * Vector3.Dot(playerController.horizontalVelocityVector, this.transform.right);
         dutch = Mathf.Clamp(dutch, -dutchLimit, dutchLimit);
         Mathf.SmoothDamp(lockOnCinemachine.Lens.Dutch, dutch, ref dutchSmoothVelocity, dutchSmoothTime);
         lockOnCinemachine.Lens.Dutch = Mathf.SmoothDamp(lockOnCinemachine.Lens.Dutch, dutch, ref dutchSmoothVelocity, dutchSmoothTime);
@@ -221,7 +221,7 @@ public class CameraController : MonoBehaviour
             // if collider is not currently locked on enemy, continue
             hitCollider.transform.Find("Lock On Point") != lastLockOn && 
             // if enemy is closer to center than current best choice, continue
-            Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position)) < minAngle &&
+            Math.Abs(Vector3.Angle(this.transform.forward, hitCollider.transform.position - this.transform.position)) < minAngle &&
             // if enemy is within screen (with small padding), continue
             viewportPos.x > 0.05f && viewportPos.x < 0.95f && viewportPos.y > 0.05f && viewportPos.y < 0.95f && viewportPos.z > 0)
             {
@@ -232,7 +232,7 @@ public class CameraController : MonoBehaviour
                 {
                     if (hit.transform == hitCollider.transform)
                     {
-                        minAngle = Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position));
+                        minAngle = Math.Abs(Vector3.Angle(this.transform.forward, hitCollider.transform.position - this.transform.position));
                         currentCandidate = hitCollider;
                     }
                 }
@@ -281,7 +281,7 @@ public class CameraController : MonoBehaviour
             // if enemy direction is closer to look input, continue
             Math.Abs(Vector2.Angle(input.lookInput, new Vector2(viewportPos.x - 0.5f, viewportPos.y - 0.5f))) < minInputAngle &&
             // if enemy is closer to center than current best choice, continue
-            Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position)) < minAngle &&
+            Math.Abs(Vector3.Angle(this.transform.forward, hitCollider.transform.position - this.transform.position)) < minAngle &&
             // if enemy is within screen (with small padding), continue
             viewportPos.x > 0.05f && viewportPos.x < 0.95f && viewportPos.y > 0.05f && viewportPos.y < 0.95f && viewportPos.z > 0)
             {
@@ -293,7 +293,7 @@ public class CameraController : MonoBehaviour
                     if (hit.transform == hitCollider.transform)
                     {
                         minInputAngle = Math.Abs(Vector2.Angle(input.lookInput, new Vector2(viewportPos.x - 0.5f, viewportPos.y - 0.5f)));
-                        minAngle = Math.Abs(Vector3.Angle(transform.forward, hitCollider.transform.position - transform.position));
+                        minAngle = Math.Abs(Vector3.Angle(this.transform.forward, hitCollider.transform.position - this.transform.position));
                         currentCandidate = hitCollider;
                     }
                 }

@@ -36,9 +36,9 @@ public class Enemy : MonoBehaviour
 
     void Start()
     {
-        lastPosition = transform.position;
+        lastPosition = this.transform.position;
 
-        startPos = transform.position;
+        startPos = this.transform.position;
 
         player = GameObject.FindGameObjectWithTag("Player").transform;
 
@@ -67,9 +67,9 @@ public class Enemy : MonoBehaviour
         }
 
         float x = Mathf.Sin(Time.time * speed) * magnitude;
-        transform.position = startPos + new Vector3(x, 0, 0);
-        velocitySendToPlayer = (transform.position - lastPosition) / Time.deltaTime;
-        lastPosition = transform.position;
+        this.transform.position = startPos + new Vector3(x, 0, 0);
+        velocitySendToPlayer = (this.transform.position - lastPosition) / Time.deltaTime;
+        lastPosition = this.transform.position;
     }
 
     private void Shoot()
@@ -77,7 +77,7 @@ public class Enemy : MonoBehaviour
         Vector2 spread = Random.insideUnitCircle * projectileSpread;
         Quaternion spreadAngle = Quaternion.Euler(spread.x, spread.y, 0);
         Projectile projectile = Instantiate(projectilePrefab, projectileExitPoint.position, projectileExitPoint.rotation * spreadAngle);
-        projectile.owner = transform;
+        projectile.owner = this.transform;
         projectile.speed = projectileSpeed;
         projectile.damage = damagePerProjectile;
         canShoot = false;
