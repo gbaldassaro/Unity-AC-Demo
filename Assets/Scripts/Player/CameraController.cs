@@ -87,6 +87,7 @@ public class CameraController : MonoBehaviour
                     cameraState = CameraState.FreeAim;
                     lockOnCamera.SetActive(false);
                     lastLockOn = null;
+                    playerController.OnUnlock();
                     break;   
 
                 case CameraState.LockOnSearch:
@@ -102,10 +103,7 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!startupFinished)
-        {
-            return;
-        }
+        if (!startupFinished) return;
 
         UpdateLock();
         MoveAim();
@@ -118,8 +116,11 @@ public class CameraController : MonoBehaviour
     {
         orbitCamera.SetActive(false);
         lockOnCamera.SetActive(false);
+        orbitCinemachine.BlendHint &= ~CinemachineCore.BlendHints.InheritPosition;
         yield return new WaitForSecondsRealtime(1.0f);
         orbitCamera.SetActive(true);
+        yield return new WaitForSecondsRealtime(2.0f);
+        orbitCinemachine.BlendHint |= CinemachineCore.BlendHints.InheritPosition;
         startupFinished = true;
     }
 
@@ -251,11 +252,13 @@ public class CameraController : MonoBehaviour
             lockOnCamera.SetActive(true);
 
             justLocked = true;
+            StartCoroutine(playerController.OnLockOn());
         }
         else
         {
             currentLockOn = null;
             lastLockOn = null;
+            playerController.OnUnlock();
         }
     }
 
@@ -312,11 +315,13 @@ public class CameraController : MonoBehaviour
             lockOnCamera.SetActive(true);
 
             justLocked = true;
+            StartCoroutine(playerController.OnLockOn());
         }
         else
         {
             currentLockOn = null;
             lastLockOn = null;
+            playerController.OnUnlock();
         }
     }
     #endregion

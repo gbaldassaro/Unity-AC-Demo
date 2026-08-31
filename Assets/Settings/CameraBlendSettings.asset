@@ -28,7 +28,7 @@ MonoBehaviour:
     To: Orbit Camera
     Blend:
       Style: 1
-      Time: 0.01
+      Time: 0.1
       CustomCurve:
         serializedVersion: 2
         m_Curve: []

@@ -55,10 +55,7 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
-        if (!startupFinished)
-        {
-            return;
-        }
+        if (!startupFinished) return;
         
         projectileExitPoint.transform.LookAt(player);
         if (canShoot && player.gameObject.activeInHierarchy)

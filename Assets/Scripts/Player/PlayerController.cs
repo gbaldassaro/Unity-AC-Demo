@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform lockOnPoint;
     [SerializeField] private Transform rightAimAtPoint;
     [SerializeField] private Transform leftAimAtPoint;
+    private bool useLockOnMovement;
 
     [Header("Player Movement Variables")]
     [Range(0,10)] [SerializeField] private float jumpVelocity;
@@ -35,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 desiredHorizontalVelocityVector = Vector3.forward;
     public Vector3 horizontalVelocityVector;
+    public Vector3 localHorizontalVelocityVector;
     private float verticalVelocity;
 
     [Header("Player Movement Smoothing")]
@@ -89,10 +91,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (!startupFinished)
-        {
-            return;
-        } 
+        if (!startupFinished) return;
 
         MovePlayer();
 
@@ -140,25 +139,29 @@ public class PlayerController : MonoBehaviour
     #region Helper Methods
     private void SetHorizontalVelocity()
     {
-        desiredHorizontalVelocityVector = Vector3.zero;
+        desiredHorizontalVelocityVector = Vector3.zero;        
 
+        Vector3 right = mainCamera.transform.right;
         Vector3 forward = mainCamera.transform.forward;
+        if (useLockOnMovement)
+        {
+            right = this.transform.right;
+            forward = this.transform.forward;
+        }
+
+        right.y = 0;
         forward.y = 0;
 
-        Vector3 right = Vector3.zero; 
-        switch (mainCamera.cameraState)
-        {
-            case CameraState.FreeAim:
-            case CameraState.LockOnSearch:
-                right = mainCamera.transform.right;
-                break;
-            case CameraState.LockedOn:
-                right = this.transform.right;
-                break;
-        }
-        right.y = 0;
-
         desiredHorizontalVelocityVector = (forward.normalized * input.moveInput.y) + (right.normalized * input.moveInput.x);
+        desiredHorizontalVelocityVector = desiredHorizontalVelocityVector.normalized;
+
+        Vector3 velocity = horizontalVelocityVector;
+        Vector3 desiredVelocity = desiredHorizontalVelocityVector;
+        if (useLockOnMovement)
+        {
+            velocity = localHorizontalVelocityVector;
+            desiredVelocity = this.transform.InverseTransformDirection(desiredHorizontalVelocityVector);
+        }
 
         maxSpeed = 0; 
 
@@ -177,26 +180,36 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        desiredHorizontalVelocityVector *= maxSpeed;
+        desiredVelocity *= maxSpeed;
 
-        horizontalVelocityVector = Vector3.SmoothDamp(horizontalVelocityVector, desiredHorizontalVelocityVector, ref playerHorizontalVelocitySmoothVelocity, horizontalVelocitySmoothTime);
+        velocity = Vector3.SmoothDamp(velocity, desiredVelocity, ref playerHorizontalVelocitySmoothVelocity, horizontalVelocitySmoothTime);
 
-        if (horizontalVelocityVector.sqrMagnitude < 0.001f)
+        if (velocity.sqrMagnitude < 0.001f)
         {
-            horizontalVelocityVector = Vector3.zero;
+            velocity = Vector3.zero;
         }
 
         if (input.dashPressed && currentEnergy - dashEnergy >= 0 &&
-            horizontalVelocityVector.sqrMagnitude > 0.001f && !dashing)
+            velocity.sqrMagnitude > 0.001f && !dashing)
         {
             StartCoroutine(DashTimer());
 
             currentEnergy -= dashEnergy;
             lastEnergyTime = Time.time;
 
-            horizontalVelocityVector = desiredHorizontalVelocityVector.normalized * dashSpeed;
+            velocity = desiredVelocity.normalized * dashSpeed;
+            // horizontalVelocityVector = ((forward.normalized * input.moveInput.y) + (mainCamera.transform.right.normalized * input.moveInput.x)).normalized * dashSpeed;
             playerState = PlayerState.Boosting;
         }
+
+        horizontalVelocityVector = velocity;
+        localHorizontalVelocityVector = velocity;
+        desiredHorizontalVelocityVector = desiredVelocity;
+        if (useLockOnMovement)
+        {
+            horizontalVelocityVector = this.transform.TransformDirection(velocity);
+            desiredHorizontalVelocityVector = this.transform.TransformDirection(desiredVelocity);
+        }        
     }
 
     private IEnumerator DashTimer()
@@ -296,6 +309,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public IEnumerator OnLockOn()
+    {
+        yield return new WaitForSeconds(rotationSmoothTime);
+        useLockOnMovement = true;
+        localHorizontalVelocityVector = this.transform.InverseTransformDirection(horizontalVelocityVector);
+    }
+
+    public void OnUnlock()
+    {
+        useLockOnMovement = false;
+    }
+
     private void HealPlayer()
     {
         health.Heal(healAmount);
@@ -320,4 +345,13 @@ public class PlayerController : MonoBehaviour
         }
     }
     #endregion
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(this.transform.position, desiredHorizontalVelocityVector);
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawRay(this.transform.position, horizontalVelocityVector);
+    }
 }

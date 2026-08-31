@@ -33,9 +33,11 @@ public class RangedWeaponController : MonoBehaviour
     private Enemy currentEnemy;
     private Vector3 currentEnemyVelocity;
 
+    private bool startupFinished;
+
 
     #region Game Loop
-    private void Awake()
+    private void Start()
     {
         maxAmmo = currentRangedWeaponData.maxAmmo;
         currentAmmo = currentRangedWeaponData.maxAmmo;
@@ -44,10 +46,21 @@ public class RangedWeaponController : MonoBehaviour
         gunModel.transform.parent = gameObject.transform;
         projectileExitPoint = gunModel.transform.Find("Projectile Exit Point");
         projectileExitLight = projectileExitPoint.transform.Find("Projectile Exit Light").gameObject;
+
+        StartCoroutine(Startup());
+    }
+
+    private IEnumerator Startup()
+    {
+        startupFinished = false;
+        yield return new WaitForSecondsRealtime(3.0f);
+        startupFinished = true;
     }
 
     private void Update()
     {   
+        if (!startupFinished) return;
+
         if (!playerController.dashing && !input.shiftControlHeld && canShoot && !reloading && currentAmmo != 0 && 
         ((input.shootRightHeld && rightHand && Time.time - input.shootRightHeldStartTime > currentRangedWeaponData.firstShotDelay) || 
         (input.shootLeftHeld && !rightHand && Time.time - input.shootLeftHeldStartTime > currentRangedWeaponData.firstShotDelay)))
